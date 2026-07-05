@@ -1,4 +1,5 @@
 export type TowerType = 'basic' | 'sniper' | 'splash' | 'slow'
+export type EnemyType = 'normal' | 'fast' | 'tank' | 'boss'
 
 export interface Tower {
   id: number
@@ -11,6 +12,7 @@ export interface Tower {
 
 export interface Enemy {
   id: number
+  type: EnemyType
   x: number
   y: number
   health: number

@@ -1,6 +1,13 @@
 import { GameState } from './types'
 import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, PATH, RAINBOW } from './constants'
 
+const ENEMY_COLORS: Record<string, string> = {
+  normal: '#ff4444',
+  fast: '#ff8844',
+  tank: '#aa4444',
+  boss: '#ff00ff',
+}
+
 export function render(
   ctx: CanvasRenderingContext2D,
   game: GameState
@@ -28,10 +35,21 @@ export function render(
   }
 
   for (const enemy of game.enemies) {
-    ctx.fillStyle = '#ff4444'
-    ctx.beginPath()
-    ctx.arc(enemy.x, enemy.y, 12, 0, Math.PI * 2)
-    ctx.fill()
+    ctx.fillStyle = ENEMY_COLORS[enemy.type] || '#ff4444'
+    if (enemy.type === 'boss') {
+      ctx.fillRect(enemy.x - 15, enemy.y - 15, 30, 30)
+    } else if (enemy.type === 'tank') {
+      ctx.beginPath()
+      ctx.moveTo(enemy.x, enemy.y - 14)
+      ctx.lineTo(enemy.x + 14, enemy.y + 10)
+      ctx.lineTo(enemy.x - 14, enemy.y + 10)
+      ctx.closePath()
+      ctx.fill()
+    } else {
+      ctx.beginPath()
+      ctx.arc(enemy.x, enemy.y, 12, 0, Math.PI * 2)
+      ctx.fill()
+    }
     ctx.fillStyle = '#44ff44'
     ctx.fillRect(enemy.x - 15, enemy.y - 20, 30 * (enemy.health / enemy.maxHealth), 4)
   }

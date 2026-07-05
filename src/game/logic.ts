@@ -1,4 +1,4 @@
-import { GameState, Tower } from './types'
+import { GameState, Tower, EnemyType } from './types'
 import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES } from './constants'
 
 export function createInitialState(): GameState {
@@ -19,15 +19,23 @@ export function createInitialState(): GameState {
 export function spawnEnemy(game: GameState) {
   if (!game.waveStarted || game.enemiesSpawned >= ENEMIES_PER_WAVE) return
 
+  const types: EnemyType[] = ['normal', 'fast', 'tank']
+  if (game.wave === 3 && game.enemiesSpawned === ENEMIES_PER_WAVE - 1) {
+    types.push('boss')
+  }
+  const type = types[Math.floor(Math.random() * types.length)]
+  const stats = ENEMY_STATS[type]
+
   game.enemies.push({
     id: Date.now() + Math.random(),
+    type,
     x: PATH[0].x,
     y: PATH[0].y,
-    health: ENEMY_STATS.health,
-    maxHealth: ENEMY_STATS.health,
-    speed: ENEMY_STATS.speed,
+    health: stats.health,
+    maxHealth: stats.health,
+    speed: stats.speed,
     pathIndex: 0,
-    reward: ENEMY_STATS.reward,
+    reward: stats.reward,
   })
   game.enemiesSpawned++
 }
