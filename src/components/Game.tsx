@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER } from '../game/constants'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER, ENEMIES_PER_WAVE, SPAWN_INTERVAL } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
@@ -97,7 +97,7 @@ function Game() {
       const game = gameRef.current
 
       if (!gameOver) {
-        if (game.enemiesSpawned < 8 && timestamp - game.lastSpawn > 1500) {
+        if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL) {
           spawnEnemy(game, difficulty)
           game.lastSpawn = timestamp
         }
@@ -142,37 +142,61 @@ function Game() {
   return (
     <div className="flex flex-col items-center gap-4">
       <HUD money={money} lives={lives} wave={wave} />
-      <TowerSelector selected={selectedTower} onSelect={setSelectedTower} />
+      <TowerSelector selected={selectedTower} onSelect={setSelectedTower} difficulty={difficulty} />
 
       {!waveStarted && !gameOver && wave === 1 && (
         <div className="flex items-center gap-2">
-          <span className="text-gray-400">Difficulty:</span>
-          {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
+          <span className="text-gray-300">Difficulty:</span>
+          {([
+            { key: 'easy' as Difficulty, color: '#15803D' },
+            { key: 'medium' as Difficulty, color: '#A16207' },
+            { key: 'hard' as Difficulty, color: '#B91C1C' },
+          ]).map(({ key, color }) => (
             <button
-              key={d}
-              onClick={() => setDifficulty(d)}
-              className={`px-3 py-1 rounded capitalize ${difficulty === d ? 'bg-blue-600' : 'bg-gray-700'} hover:bg-blue-500`}
+              key={key}
+              onClick={() => setDifficulty(key)}
+              aria-pressed={difficulty === key}
+              style={{
+                backgroundColor: difficulty === key ? color : '#374151',
+                color: '#fff',
+              }}
+              className="px-3 py-1 rounded capitalize hover:opacity-80"
             >
-              {d}
+              {key}
             </button>
           ))}
-          <span className="text-gray-500 text-sm">({DIFFICULTY_MULTIPLIER[difficulty]}x)</span>
+          <span className="text-gray-300 text-sm">({DIFFICULTY_MULTIPLIER[difficulty]}x)</span>
         </div>
       )}
 
       {!waveStarted && !gameOver && (
-        <button onClick={startWave} className="px-4 py-2 bg-green-600 rounded hover:bg-green-500">
-          Start Wave {wave}
-        </button>
+        <div
+          className="p-[2px] rounded-[5px]"
+          style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
+        >
+          <button
+            onClick={startWave}
+            className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]"
+          >
+            Start Wave {wave}
+          </button>
+        </div>
       )}
 
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        onClick={handleCanvasClick}
-        className="border border-gray-600 cursor-crosshair"
-      />
+      <div
+        className="p-[3px] rounded-[5px]"
+        style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
+      >
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          onClick={handleCanvasClick}
+          role="img"
+          aria-label="Game board"
+          className="cursor-crosshair rounded-[5px] block"
+        />
+      </div>
 
       {selectedPlacedTower && !gameOver && (
         <div className="flex items-center gap-4 bg-gray-800 px-4 py-2 rounded">
@@ -183,15 +207,15 @@ function Game() {
             <button
               onClick={handleUpgrade}
               disabled={!canUpgrade}
-              className={`px-3 py-1 rounded ${canUpgrade ? 'bg-yellow-600 hover:bg-yellow-500' : 'bg-gray-600 cursor-not-allowed'}`}
+              className={`px-3 py-1 rounded ${canUpgrade ? 'bg-yellow-700 hover:bg-yellow-600 text-white' : 'bg-gray-600 cursor-not-allowed text-white'}`}
             >
               Upgrade (${upgradeCost})
             </button>
           ) : (
-            <span className="text-gray-400">Max Level</span>
+            <span className="text-gray-300">Max Level</span>
           )}
           {upgradedStats && (
-            <span className="text-gray-400 text-sm">
+            <span className="text-gray-300 text-sm">
               → Dmg {upgradedStats.damage} | Rng {upgradedStats.range} | Rate {Math.round(upgradedStats.fireRate)}ms
             </span>
           )}
@@ -200,12 +224,17 @@ function Game() {
 
       {gameOver && (
         <div className="text-center">
-          <p className={`text-2xl mb-2 ${gameOver === 'won' ? 'text-green-400' : 'text-red-400'}`}>
+          <p className={`text-2xl mb-2 ${gameOver === 'won' ? 'text-green-300' : 'text-red-300'}`}>
             {gameOver === 'won' ? 'You Won!' : 'Game Over'}
           </p>
-          <button onClick={resetGame} className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
-            Play Again
-          </button>
+          <div
+            className="p-[2px] rounded-[5px] inline-block"
+            style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
+          >
+            <button onClick={resetGame} className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]">
+              Play Again
+            </button>
+          </div>
         </div>
       )}
     </div>
