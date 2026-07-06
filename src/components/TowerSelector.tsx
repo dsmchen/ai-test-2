@@ -1,23 +1,39 @@
-import { TowerType } from '../game/types'
+import { TowerType, Difficulty } from '../game/types'
 import { TOWER_STATS } from '../game/constants'
 
 interface TowerSelectorProps {
   selected: TowerType
   onSelect: (type: TowerType) => void
+  difficulty: Difficulty
 }
 
 const TOWER_TYPES: TowerType[] = ['basic', 'sniper', 'splash', 'slow']
 
-function TowerSelector({ selected, onSelect }: TowerSelectorProps) {
+const TOWER_EMOJI: Record<TowerType, string> = {
+  basic: '🎯',
+  sniper: '🔭',
+  splash: '💥',
+  slow: '🐌',
+}
+
+const DIFFICULTY_COLOR: Record<Difficulty, string> = {
+  easy: '#15803D',
+  medium: '#A16207',
+  hard: '#B91C1C',
+}
+
+function TowerSelector({ selected, onSelect, difficulty }: TowerSelectorProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2" role="group" aria-label="Tower selection">
       {TOWER_TYPES.map(t => (
         <button
           key={t}
           onClick={() => onSelect(t)}
-          className={`px-3 py-1 rounded ${selected === t ? 'bg-blue-600' : 'bg-gray-700'} hover:bg-blue-500`}
+          aria-pressed={selected === t}
+          className="px-3 py-1 rounded hover:opacity-80"
+          style={{ backgroundColor: selected === t ? DIFFICULTY_COLOR[difficulty] : '#374151' }}
         >
-          {t} (${TOWER_STATS[t].cost})
+          {TOWER_EMOJI[t]} {t} (${TOWER_STATS[t].cost})
         </button>
       ))}
     </div>

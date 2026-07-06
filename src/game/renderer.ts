@@ -1,11 +1,18 @@
 import { GameState } from './types'
-import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, PATH, RAINBOW } from './constants'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, PATH } from './constants'
 
 const ENEMY_COLORS: Record<string, string> = {
   normal: '#ff4444',
   fast: '#ff8844',
   tank: '#aa4444',
   boss: '#ff00ff',
+}
+
+const TOWER_EMOJI: Record<string, string> = {
+  basic: '🎯',
+  sniper: '🔭',
+  splash: '💥',
+  slow: '🐌',
 }
 
 export function render(
@@ -25,13 +32,16 @@ export function render(
   ctx.stroke()
 
   for (const tower of game.towers) {
-    const colorIndex = game.towers.indexOf(tower) % RAINBOW.length
-    ctx.fillStyle = RAINBOW[colorIndex]
+    ctx.fillStyle = '#374151'
     ctx.fillRect(tower.x - CELL_SIZE / 3, tower.y - CELL_SIZE / 3, CELL_SIZE / 1.5, CELL_SIZE / 1.5)
-    ctx.fillStyle = '#fff'
-    ctx.font = '10px monospace'
+    ctx.font = `${CELL_SIZE / 2}px sans-serif`
     ctx.textAlign = 'center'
-    ctx.fillText(`Lv${tower.level}`, tower.x, tower.y + 4)
+    ctx.textBaseline = 'middle'
+    ctx.fillText(TOWER_EMOJI[tower.type], tower.x, tower.y)
+    ctx.fillStyle = '#fff'
+    ctx.font = '8px monospace'
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillText(`Lv${tower.level}`, tower.x, tower.y + CELL_SIZE / 3 + 8)
   }
 
   for (const enemy of game.enemies) {
