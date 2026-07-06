@@ -12,6 +12,8 @@ import {
   STARTING_LIVES,
   TOTAL_WAVES,
   RAINBOW,
+  UPGRADE_COST,
+  UPGRADE_MULTIPLIER,
 } from './constants'
 
 describe('constants', () => {
@@ -78,5 +80,18 @@ describe('constants', () => {
 
   it('rainbow has 7 colors', () => {
     expect(RAINBOW).toHaveLength(7)
+  })
+
+  it('upgrade costs have 3 entries', () => {
+    expect(UPGRADE_COST).toHaveLength(3)
+    expect(UPGRADE_COST[0]).toBe(0)
+    expect(UPGRADE_COST[1]).toBeGreaterThan(0)
+    expect(UPGRADE_COST[2]).toBeGreaterThan(UPGRADE_COST[1])
+  })
+
+  it('upgrade multipliers increase per level', () => {
+    expect(UPGRADE_MULTIPLIER).toHaveLength(3)
+    expect(UPGRADE_MULTIPLIER[0]).toBe(1)
+    expect(UPGRADE_MULTIPLIER[2]).toBeGreaterThan(UPGRADE_MULTIPLIER[1])
   })
 })

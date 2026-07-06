@@ -22,6 +22,9 @@ export const TOWER_STATS: Record<TowerType, { damage: number; range: number; fir
   slow: { damage: 5, range: 90, fireRate: 800, cost: 60 },
 }
 
+export const UPGRADE_COST = [0, 40, 80]
+export const UPGRADE_MULTIPLIER = [1, 1.5, 2]
+
 export const ENEMY_STATS: Record<EnemyType, { health: number; speed: number; reward: number }> = {
   normal: { health: 80, speed: 0.8, reward: 15 },
   fast: { health: 50, speed: 1.5, reward: 20 },

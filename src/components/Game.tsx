@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { TowerType } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES } from '../game/constants'
+import { Tower, TowerType } from '../game/types'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
   placeTower,
+  upgradeTower,
+  getTowerStats,
   updateEnemies,
   updateTowers,
   updateProjectiles,
@@ -21,6 +23,7 @@ function Game() {
   const [lives, setLives] = useState(STARTING_LIVES)
   const [wave, setWave] = useState(1)
   const [selectedTower, setSelectedTower] = useState<TowerType>('basic')
+  const [selectedPlacedTower, setSelectedPlacedTower] = useState<Tower | null>(null)
   const [gameOver, setGameOver] = useState<'won' | 'lost' | null>(null)
   const [waveStarted, setWaveStarted] = useState(false)
 
@@ -41,12 +44,34 @@ function Game() {
 
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
+
+    const game = gameRef.current
+    const clickedTower = game.towers.find(t => {
+      const dx = t.x - x
+      const dy = t.y - y
+      return Math.sqrt(dx * dx + dy * dy) < CELL_SIZE / 2
+    })
+
+    if (clickedTower) {
+      setSelectedPlacedTower(clickedTower)
+      return
+    }
+
+    setSelectedPlacedTower(null)
     const gridX = Math.floor(x / CELL_SIZE) * CELL_SIZE + CELL_SIZE / 2
     const gridY = Math.floor(y / CELL_SIZE) * CELL_SIZE + CELL_SIZE / 2
 
-    const game = gameRef.current
     if (placeTower(game, gridX, gridY, selectedTower)) {
       setMoney(game.money)
+    }
+  }
+
+  const handleUpgrade = () => {
+    if (!selectedPlacedTower) return
+    const game = gameRef.current
+    if (upgradeTower(game, selectedPlacedTower.id)) {
+      setMoney(game.money)
+      setSelectedPlacedTower({ ...selectedPlacedTower, level: selectedPlacedTower.level + 1 })
     }
   }
 
@@ -57,6 +82,7 @@ function Game() {
     setWave(1)
     setWaveStarted(false)
     setGameOver(null)
+    setSelectedPlacedTower(null)
   }
 
   useEffect(() => {
@@ -106,6 +132,12 @@ function Game() {
     }
   }, [gameOver, wave])
 
+  const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
+  const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
+  const upgradedStats = selectedPlacedTower && selectedPlacedTower.level < 3
+    ? getTowerStats({ ...selectedPlacedTower, level: selectedPlacedTower.level + 1 })
+    : null
+
   return (
     <div className="flex flex-col items-center gap-4">
       <HUD money={money} lives={lives} wave={wave} />
@@ -124,6 +156,30 @@ function Game() {
         onClick={handleCanvasClick}
         className="border border-gray-600 cursor-crosshair"
       />
+
+      {selectedPlacedTower && !gameOver && (
+        <div className="flex items-center gap-4 bg-gray-800 px-4 py-2 rounded">
+          <span className="text-white">
+            {selectedPlacedTower.type} Lv{selectedPlacedTower.level}
+          </span>
+          {selectedPlacedTower.level < 3 ? (
+            <button
+              onClick={handleUpgrade}
+              disabled={!canUpgrade}
+              className={`px-3 py-1 rounded ${canUpgrade ? 'bg-yellow-600 hover:bg-yellow-500' : 'bg-gray-600 cursor-not-allowed'}`}
+            >
+              Upgrade (${upgradeCost})
+            </button>
+          ) : (
+            <span className="text-gray-400">Max Level</span>
+          )}
+          {upgradedStats && (
+            <span className="text-gray-400 text-sm">
+              → Dmg {upgradedStats.damage} | Rng {upgradedStats.range} | Rate {Math.round(upgradedStats.fireRate)}ms
+            </span>
+          )}
+        </div>
+      )}
 
       {gameOver && (
         <div className="text-center">

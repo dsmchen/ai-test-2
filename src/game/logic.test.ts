@@ -3,13 +3,15 @@ import {
   createInitialState,
   spawnEnemy,
   placeTower,
+  upgradeTower,
+  getTowerStats,
   updateEnemies,
   updateTowers,
   updateProjectiles,
   checkWaveComplete,
   checkGameOver,
 } from './logic'
-import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH } from './constants'
+import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER } from './constants'
 import { GameState } from './types'
 
 function makeGame(overrides?: Partial<GameState>): GameState {
@@ -415,5 +417,87 @@ describe('checkGameOver', () => {
 
   it('returns true when lives are negative', () => {
     expect(checkGameOver(makeGame({ lives: -5 }))).toBe(true)
+  })
+})
+
+describe('getTowerStats', () => {
+  it('returns base stats at level 1', () => {
+    const stats = getTowerStats(makeTower({ type: 'basic', level: 1 }))
+    expect(stats.damage).toBe(TOWER_STATS.basic.damage)
+    expect(stats.range).toBe(TOWER_STATS.basic.range)
+    expect(stats.fireRate).toBe(TOWER_STATS.basic.fireRate)
+  })
+
+  it('scales damage and range by multiplier at level 2', () => {
+    const stats = getTowerStats(makeTower({ type: 'basic', level: 2 }))
+    expect(stats.damage).toBe(TOWER_STATS.basic.damage * UPGRADE_MULTIPLIER[1])
+    expect(stats.range).toBe(TOWER_STATS.basic.range * UPGRADE_MULTIPLIER[1])
+  })
+
+  it('reduces fireRate at higher levels', () => {
+    const lvl1 = getTowerStats(makeTower({ level: 1 }))
+    const lvl3 = getTowerStats(makeTower({ level: 3 }))
+    expect(lvl3.fireRate).toBeLessThan(lvl1.fireRate)
+  })
+
+  it('doubles stats at max level', () => {
+    const stats = getTowerStats(makeTower({ type: 'sniper', level: 3 }))
+    expect(stats.damage).toBe(TOWER_STATS.sniper.damage * 2)
+    expect(stats.range).toBe(TOWER_STATS.sniper.range * 2)
+    expect(stats.fireRate).toBe(TOWER_STATS.sniper.fireRate / 2)
+  })
+})
+
+describe('upgradeTower', () => {
+  it('upgrades tower from level 1 to 2', () => {
+    const game = makeGame({ money: 100, towers: [makeTower({ id: 1, level: 1 })] })
+    expect(upgradeTower(game, 1)).toBe(true)
+    expect(game.towers[0].level).toBe(2)
+    expect(game.money).toBe(100 - UPGRADE_COST[1])
+  })
+
+  it('upgrades tower from level 2 to 3', () => {
+    const game = makeGame({ money: 100, towers: [makeTower({ id: 1, level: 2 })] })
+    expect(upgradeTower(game, 1)).toBe(true)
+    expect(game.towers[0].level).toBe(3)
+    expect(game.money).toBe(100 - UPGRADE_COST[2])
+  })
+
+  it('returns false when already max level', () => {
+    const game = makeGame({ money: 200, towers: [makeTower({ id: 1, level: 3 })] })
+    expect(upgradeTower(game, 1)).toBe(false)
+    expect(game.towers[0].level).toBe(3)
+  })
+
+  it('returns false when not enough money', () => {
+    const game = makeGame({ money: 0, towers: [makeTower({ id: 1, level: 1 })] })
+    expect(upgradeTower(game, 1)).toBe(false)
+    expect(game.towers[0].level).toBe(1)
+  })
+
+  it('returns false for non-existent tower', () => {
+    const game = makeGame({ money: 100 })
+    expect(upgradeTower(game, 999)).toBe(false)
+  })
+})
+
+describe('updateTowers with upgrades', () => {
+  it('upgraded tower deals more damage', () => {
+    const game = makeGame({
+      towers: [makeTower({ level: 3 })],
+      enemies: [makeEnemy({ id: 2, x: 150, y: 100, health: 200 })],
+    })
+    updateTowers(game, 2000)
+    expect(game.projectiles).toHaveLength(1)
+    expect(game.projectiles[0].damage).toBe(TOWER_STATS.basic.damage * UPGRADE_MULTIPLIER[2])
+  })
+
+  it('upgraded tower has larger range', () => {
+    const game = makeGame({
+      towers: [makeTower({ level: 3 })],
+      enemies: [makeEnemy({ id: 2, x: 100 + TOWER_STATS.basic.range + 50, y: 100 })],
+    })
+    updateTowers(game, 2000)
+    expect(game.projectiles).toHaveLength(1)
   })
 })

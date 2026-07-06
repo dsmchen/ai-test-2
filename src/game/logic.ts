@@ -1,5 +1,16 @@
 import { GameState, Tower, EnemyType } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES } from './constants'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER } from './constants'
+
+export function getTowerStats(tower: Tower) {
+  const base = TOWER_STATS[tower.type]
+  const mult = UPGRADE_MULTIPLIER[tower.level - 1]
+  return {
+    damage: base.damage * mult,
+    range: base.range * mult,
+    fireRate: base.fireRate / mult,
+    cost: base.cost,
+  }
+}
 
 export function createInitialState(): GameState {
   return {
@@ -63,6 +74,18 @@ export function placeTower(game: GameState, x: number, y: number, type: Tower['t
   return true
 }
 
+export function upgradeTower(game: GameState, towerId: number): boolean {
+  const tower = game.towers.find(t => t.id === towerId)
+  if (!tower || tower.level >= 3) return false
+
+  const cost = UPGRADE_COST[tower.level]
+  if (game.money < cost) return false
+
+  game.money -= cost
+  tower.level++
+  return true
+}
+
 export function updateEnemies(game: GameState) {
   for (const enemy of game.enemies) {
     if (enemy.pathIndex < PATH.length - 1) {
@@ -86,7 +109,7 @@ export function updateEnemies(game: GameState) {
 
 export function updateTowers(game: GameState, timestamp: number) {
   for (const tower of game.towers) {
-    const stats = TOWER_STATS[tower.type]
+    const stats = getTowerStats(tower)
     if (timestamp - tower.lastFired > stats.fireRate) {
       for (const enemy of game.enemies) {
         const dx = enemy.x - tower.x
