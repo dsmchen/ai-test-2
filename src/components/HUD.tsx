@@ -9,9 +9,9 @@ interface HUDProps {
 function HUD({ money, lives, wave }: HUDProps) {
   return (
     <div className="flex gap-4 text-lg" aria-label="Game status">
-      <span>💰 {money}</span>
-      <span>❤️ {lives}</span>
-      <span>🌊 Wave {wave}/{TOTAL_WAVES}</span>
+      <span className="transition-btn">💰 {money}</span>
+      <span className="transition-btn">❤️ {lives}</span>
+      <span className="transition-btn">🌊 Wave {wave}/{TOTAL_WAVES}</span>
     </div>
   )
 }

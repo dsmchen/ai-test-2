@@ -40,3 +40,9 @@ export const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
   medium: 1,
   hard: 1.5,
 }
+
+export const DIFFICULTY_COLOR: Record<Difficulty, string> = {
+  easy: '#15803D',
+  medium: '#A16207',
+  hard: '#B91C1C',
+}
