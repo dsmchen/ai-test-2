@@ -93,7 +93,10 @@ function Game() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    let cancelled = false
+
     const gameLoop = (timestamp: number) => {
+      if (cancelled) return
       const game = gameRef.current
 
       if (!gameOver) {
@@ -127,9 +130,9 @@ function Game() {
 
     gameRef.current.animationId = requestAnimationFrame(gameLoop)
 
-    const animationId = gameRef.current.animationId
     return () => {
-      cancelAnimationFrame(animationId)
+      cancelled = true
+      cancelAnimationFrame(gameRef.current.animationId)
     }
   }, [gameOver, wave, difficulty])
 
