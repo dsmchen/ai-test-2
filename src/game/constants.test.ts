@@ -14,6 +14,7 @@ import {
   RAINBOW,
   UPGRADE_COST,
   UPGRADE_MULTIPLIER,
+  DIFFICULTY_MULTIPLIER,
 } from './constants'
 
 describe('constants', () => {
@@ -93,5 +94,11 @@ describe('constants', () => {
     expect(UPGRADE_MULTIPLIER).toHaveLength(3)
     expect(UPGRADE_MULTIPLIER[0]).toBe(1)
     expect(UPGRADE_MULTIPLIER[2]).toBeGreaterThan(UPGRADE_MULTIPLIER[1])
+  })
+
+  it('difficulty multipliers scale correctly', () => {
+    expect(DIFFICULTY_MULTIPLIER.easy).toBeLessThan(DIFFICULTY_MULTIPLIER.medium)
+    expect(DIFFICULTY_MULTIPLIER.medium).toBeLessThan(DIFFICULTY_MULTIPLIER.hard)
+    expect(DIFFICULTY_MULTIPLIER.medium).toBe(1)
   })
 })

@@ -1,5 +1,6 @@
 export type TowerType = 'basic' | 'sniper' | 'splash' | 'slow'
 export type EnemyType = 'normal' | 'fast' | 'tank' | 'boss'
+export type Difficulty = 'easy' | 'medium' | 'hard'
 
 export interface Tower {
   id: number

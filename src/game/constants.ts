@@ -1,4 +1,4 @@
-import { TowerType, EnemyType } from './types'
+import { TowerType, EnemyType, Difficulty } from './types'
 
 export const CELL_SIZE = 40
 export const CANVAS_WIDTH = 800
@@ -36,3 +36,9 @@ export const SPAWN_INTERVAL = 1500
 export const STARTING_MONEY = 300
 export const STARTING_LIVES = 30
 export const TOTAL_WAVES = 3
+
+export const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
+  easy: 0.5,
+  medium: 1,
+  hard: 1.5,
+}

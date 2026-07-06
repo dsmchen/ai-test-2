@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Tower, TowerType } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST } from '../game/constants'
+import { Tower, TowerType, Difficulty } from '../game/types'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
@@ -26,6 +26,7 @@ function Game() {
   const [selectedPlacedTower, setSelectedPlacedTower] = useState<Tower | null>(null)
   const [gameOver, setGameOver] = useState<'won' | 'lost' | null>(null)
   const [waveStarted, setWaveStarted] = useState(false)
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium')
 
   const gameRef = useRef(createInitialState())
 
@@ -97,7 +98,7 @@ function Game() {
 
       if (!gameOver) {
         if (game.enemiesSpawned < 8 && timestamp - game.lastSpawn > 1500) {
-          spawnEnemy(game)
+          spawnEnemy(game, difficulty)
           game.lastSpawn = timestamp
         }
 
@@ -130,7 +131,7 @@ function Game() {
     return () => {
       cancelAnimationFrame(animationId)
     }
-  }, [gameOver, wave])
+  }, [gameOver, wave, difficulty])
 
   const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
   const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
@@ -142,6 +143,22 @@ function Game() {
     <div className="flex flex-col items-center gap-4">
       <HUD money={money} lives={lives} wave={wave} />
       <TowerSelector selected={selectedTower} onSelect={setSelectedTower} />
+
+      {!waveStarted && !gameOver && wave === 1 && (
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400">Difficulty:</span>
+          {(['easy', 'medium', 'hard'] as Difficulty[]).map(d => (
+            <button
+              key={d}
+              onClick={() => setDifficulty(d)}
+              className={`px-3 py-1 rounded capitalize ${difficulty === d ? 'bg-blue-600' : 'bg-gray-700'} hover:bg-blue-500`}
+            >
+              {d}
+            </button>
+          ))}
+          <span className="text-gray-500 text-sm">({DIFFICULTY_MULTIPLIER[difficulty]}x)</span>
+        </div>
+      )}
 
       {!waveStarted && !gameOver && (
         <button onClick={startWave} className="px-4 py-2 bg-green-600 rounded hover:bg-green-500">

@@ -1,5 +1,5 @@
-import { GameState, Tower, EnemyType } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER } from './constants'
+import { GameState, Tower, EnemyType, Difficulty } from './types'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER } from './constants'
 
 export function getTowerStats(tower: Tower) {
   const base = TOWER_STATS[tower.type]
@@ -27,7 +27,7 @@ export function createInitialState(): GameState {
   }
 }
 
-export function spawnEnemy(game: GameState) {
+export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
   if (!game.waveStarted || game.enemiesSpawned >= ENEMIES_PER_WAVE) return
 
   const types: EnemyType[] = ['normal', 'fast', 'tank']
@@ -36,17 +36,18 @@ export function spawnEnemy(game: GameState) {
   }
   const type = types[Math.floor(Math.random() * types.length)]
   const stats = ENEMY_STATS[type]
+  const mult = DIFFICULTY_MULTIPLIER[difficulty]
 
   game.enemies.push({
     id: Date.now() + Math.random(),
     type,
     x: PATH[0].x,
     y: PATH[0].y,
-    health: stats.health,
-    maxHealth: stats.health,
-    speed: stats.speed,
+    health: stats.health * mult,
+    maxHealth: stats.health * mult,
+    speed: stats.speed * mult,
     pathIndex: 0,
-    reward: stats.reward,
+    reward: Math.round(stats.reward * mult),
   })
   game.enemiesSpawned++
 }

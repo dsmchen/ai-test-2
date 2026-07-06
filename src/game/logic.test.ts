@@ -11,7 +11,7 @@ import {
   checkWaveComplete,
   checkGameOver,
 } from './logic'
-import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER } from './constants'
+import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, ENEMY_STATS } from './constants'
 import { GameState } from './types'
 
 function makeGame(overrides?: Partial<GameState>): GameState {
@@ -117,6 +117,42 @@ describe('spawnEnemy', () => {
     const game = makeGame({ waveStarted: true, wave: 1, enemiesSpawned: ENEMIES_PER_WAVE - 1 })
     spawnEnemy(game)
     expect(game.enemies[0].type).not.toBe('boss')
+  })
+
+  it('defaults to medium difficulty', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const game = makeGame({ waveStarted: true })
+    spawnEnemy(game)
+    expect(game.enemies[0].health).toBe(ENEMY_STATS.normal.health)
+    expect(game.enemies[0].speed).toBe(ENEMY_STATS.normal.speed)
+    expect(game.enemies[0].reward).toBe(ENEMY_STATS.normal.reward)
+  })
+
+  it('scales stats on easy difficulty', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const game = makeGame({ waveStarted: true })
+    spawnEnemy(game, 'easy')
+    const mult = DIFFICULTY_MULTIPLIER.easy
+    expect(game.enemies[0].health).toBe(ENEMY_STATS.normal.health * mult)
+    expect(game.enemies[0].speed).toBe(ENEMY_STATS.normal.speed * mult)
+    expect(game.enemies[0].reward).toBe(Math.round(ENEMY_STATS.normal.reward * mult))
+  })
+
+  it('scales stats on hard difficulty', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const game = makeGame({ waveStarted: true })
+    spawnEnemy(game, 'hard')
+    const mult = DIFFICULTY_MULTIPLIER.hard
+    expect(game.enemies[0].health).toBe(ENEMY_STATS.normal.health * mult)
+    expect(game.enemies[0].speed).toBe(ENEMY_STATS.normal.speed * mult)
+    expect(game.enemies[0].reward).toBe(Math.round(ENEMY_STATS.normal.reward * mult))
+  })
+
+  it('maxHealth matches health after scaling', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const game = makeGame({ waveStarted: true })
+    spawnEnemy(game, 'hard')
+    expect(game.enemies[0].maxHealth).toBe(game.enemies[0].health)
   })
 })
 
