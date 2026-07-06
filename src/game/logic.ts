@@ -1,5 +1,5 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER } from './constants'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES } from './constants'
 
 export function getTowerStats(tower: Tower) {
   const base = TOWER_STATS[tower.type]
@@ -31,7 +31,7 @@ export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
   if (!game.waveStarted || game.enemiesSpawned >= ENEMIES_PER_WAVE) return
 
   const types: EnemyType[] = ['normal', 'fast', 'tank']
-  if (game.wave === 3 && game.enemiesSpawned === ENEMIES_PER_WAVE - 1) {
+  if (game.wave === TOTAL_WAVES && game.enemiesSpawned === ENEMIES_PER_WAVE - 1) {
     types.push('boss')
   }
   const type = types[Math.floor(Math.random() * types.length)]
@@ -159,7 +159,7 @@ export function updateProjectiles(game: GameState) {
 
 export function checkWaveComplete(game: GameState): boolean {
   if (game.enemies.length === 0 && game.enemiesSpawned >= ENEMIES_PER_WAVE) {
-    if (game.wave < 3) {
+    if (game.wave < TOTAL_WAVES) {
       game.wave++
       game.enemiesSpawned = 0
       game.waveStarted = false

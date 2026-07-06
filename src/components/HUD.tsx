@@ -1,3 +1,5 @@
+import { TOTAL_WAVES } from '../game/constants'
+
 interface HUDProps {
   money: number
   lives: number
@@ -6,10 +8,10 @@ interface HUDProps {
 
 function HUD({ money, lives, wave }: HUDProps) {
   return (
-    <div className="flex gap-4 text-lg">
+    <div className="flex gap-4 text-lg" aria-label="Game status">
       <span>💰 {money}</span>
       <span>❤️ {lives}</span>
-      <span>🌊 Wave {wave}/3</span>
+      <span>🌊 Wave {wave}/{TOTAL_WAVES}</span>
     </div>
   )
 }

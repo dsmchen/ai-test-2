@@ -11,7 +11,6 @@ import {
   STARTING_MONEY,
   STARTING_LIVES,
   TOTAL_WAVES,
-  RAINBOW,
   UPGRADE_COST,
   UPGRADE_MULTIPLIER,
   DIFFICULTY_MULTIPLIER,
@@ -77,10 +76,6 @@ describe('constants', () => {
     expect(STARTING_MONEY).toBeGreaterThan(0)
     expect(STARTING_LIVES).toBeGreaterThan(0)
     expect(TOTAL_WAVES).toBeGreaterThan(0)
-  })
-
-  it('rainbow has 7 colors', () => {
-    expect(RAINBOW).toHaveLength(7)
   })
 
   it('upgrade costs have 3 entries', () => {

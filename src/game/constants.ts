@@ -13,8 +13,6 @@ export const PATH = [
   { x: 800, y: 500 },
 ]
 
-export const RAINBOW = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3']
-
 export const TOWER_STATS: Record<TowerType, { damage: number; range: number; fireRate: number; cost: number }> = {
   basic: { damage: 10, range: 100, fireRate: 1000, cost: 50 },
   sniper: { damage: 50, range: 200, fireRate: 2000, cost: 100 },
@@ -31,7 +29,7 @@ export const ENEMY_STATS: Record<EnemyType, { health: number; speed: number; rew
   tank: { health: 200, speed: 0.5, reward: 30 },
   boss: { health: 500, speed: 0.3, reward: 100 },
 }
-export const ENEMIES_PER_WAVE = 8
+export const ENEMIES_PER_WAVE = 10
 export const SPAWN_INTERVAL = 1500
 export const STARTING_MONEY = 300
 export const STARTING_LIVES = 30
