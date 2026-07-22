@@ -414,8 +414,8 @@ function Game() {
         />
 
         {gameOver && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-30 rounded-[5px]">
-            <div className="text-center">
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-30 rounded-[5px] animate-fade-in">
+            <div className="text-center animate-slide-up">
               <p className={`text-3xl font-bold mb-4 ${gameOver === 'won' ? 'text-green-300' : 'text-red-300'}`}>
                 {gameOver === 'won' ? 'You Won!' : 'Game Over'}
               </p>
