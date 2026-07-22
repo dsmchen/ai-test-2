@@ -1,10 +1,9 @@
-import { TowerType, Difficulty } from '../game/types'
-import { TOWER_STATS, DIFFICULTY_COLOR } from '../game/constants'
+import { TowerType } from '../game/types'
+import { TOWER_STATS } from '../game/constants'
 
 interface TowerSelectorProps {
   selected: TowerType
   onSelect: (type: TowerType) => void
-  difficulty: Difficulty
   money: number
 }
 
@@ -17,7 +16,7 @@ const TOWER_EMOJI: Record<TowerType, string> = {
   slow: '🐌',
 }
 
-function TowerSelector({ selected, onSelect, difficulty, money }: TowerSelectorProps) {
+function TowerSelector({ selected, onSelect, money }: TowerSelectorProps) {
   return (
     <div className="flex gap-2" role="group" aria-label="Tower selection">
       {TOWER_TYPES.map(t => {
@@ -31,7 +30,7 @@ function TowerSelector({ selected, onSelect, difficulty, money }: TowerSelectorP
             className={`px-3 py-1 rounded transition-btn ${
               !canAfford ? 'opacity-40 cursor-not-allowed' : ''
             }`}
-            style={{ backgroundColor: selected === t ? DIFFICULTY_COLOR[difficulty] : '#374151' }}
+            style={{ backgroundColor: selected === t ? '#6b7280' : '#374151' }}
           >
             {TOWER_EMOJI[t]} {t} (${TOWER_STATS[t].cost})
           </button>

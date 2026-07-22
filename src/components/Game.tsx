@@ -349,7 +349,7 @@ function Game() {
   return (
     <div className="relative flex flex-col items-center gap-4">
       <HUD money={money} lives={lives} wave={wave} />
-      <TowerSelector selected={selectedTower} onSelect={setSelectedTower} difficulty={difficulty} money={money} />
+      <TowerSelector selected={selectedTower} onSelect={setSelectedTower} money={money} />
 
       {!waveStarted && !gameOver && (
         <div
@@ -418,7 +418,7 @@ function Game() {
             <button
               onClick={handleUpgrade}
               disabled={!canUpgrade}
-              className={`px-3 py-1 rounded ${canUpgrade ? 'bg-yellow-700 hover:bg-yellow-600 text-white' : 'bg-gray-600 cursor-not-allowed text-white'}`}
+              className={`px-3 py-1 rounded ${canUpgrade ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-600 cursor-not-allowed text-white'}`}
             >
               Upgrade (${upgradeCost})
             </button>
