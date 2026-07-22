@@ -305,7 +305,6 @@ function Game() {
   if (phase === 'setup') {
     return (
       <div className="flex flex-col items-center gap-8 py-12">
-        <h1 className="text-4xl font-bold text-white">Tower Defense</h1>
         <div className="flex flex-col items-center gap-4">
           <span className="text-gray-300">Select Difficulty</span>
           <div className="flex items-center gap-3">
