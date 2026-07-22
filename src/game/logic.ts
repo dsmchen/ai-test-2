@@ -66,22 +66,29 @@ export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
   game.enemiesSpawned++
 }
 
-export function placeTower(game: GameState, x: number, y: number, type: Tower['type']): boolean {
+export function canPlaceTower(game: GameState, x: number, y: number, type: Tower['type']): 'money' | 'tower' | 'path' | null {
   const stats = TOWER_STATS[type]
-  if (game.money < stats.cost) return false
+  if (game.money < stats.cost) return 'money'
 
   const tooClose = game.towers.some(t => {
     const dx = t.x - x
     const dy = t.y - y
     return Math.sqrt(dx * dx + dy * dy) < CELL_SIZE
   })
-  if (tooClose) return false
+  if (tooClose) return 'tower'
 
   for (let i = 0; i < PATH.length - 1; i++) {
     const dist = distanceToSegment(x, y, PATH[i].x, PATH[i].y, PATH[i + 1].x, PATH[i + 1].y)
-    if (dist < PATH_CLEARANCE) return false
+    if (dist < PATH_CLEARANCE) return 'path'
   }
 
+  return null
+}
+
+export function placeTower(game: GameState, x: number, y: number, type: Tower['type']): boolean {
+  if (canPlaceTower(game, x, y, type) !== null) return false
+
+  const stats = TOWER_STATS[type]
   game.towers.push({
     id: Date.now(),
     type,
