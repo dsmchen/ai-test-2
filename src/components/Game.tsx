@@ -232,6 +232,8 @@ function Game() {
 
     let cancelled = false
 
+    render(ctx, gameRef.current, null, selectedTower, null, null)
+
     const gameLoop = (timestamp: number) => {
       if (cancelled) return
       const game = gameRef.current
@@ -277,7 +279,7 @@ function Game() {
       cancelled = true
       cancelAnimationFrame(gameRef.current.animationId)
     }
-  }, [gameOver, wave, difficulty, selectedTower, gameSpeed, money, lives]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [gameOver, wave, difficulty, selectedTower, gameSpeed, money, lives, phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
   const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
@@ -387,7 +389,7 @@ function Game() {
       >
         <canvas
           ref={canvasRef}
-          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
+          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, backgroundColor: '#1a1a2e' }}
           onClick={handleCanvasClick}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
