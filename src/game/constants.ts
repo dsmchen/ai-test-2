@@ -15,9 +15,9 @@ export const PATH = [
 
 export const TOWER_STATS: Record<TowerType, { damage: number; range: number; fireRate: number; cost: number }> = {
   basic: { damage: 10, range: 100, fireRate: 1000, cost: 50 },
-  sniper: { damage: 50, range: 200, fireRate: 2000, cost: 100 },
+  sniper: { damage: 35, range: 180, fireRate: 2000, cost: 120 },
   splash: { damage: 15, range: 80, fireRate: 1500, cost: 75 },
-  slow: { damage: 5, range: 90, fireRate: 800, cost: 60 },
+  slow: { damage: 8, range: 100, fireRate: 800, cost: 60 },
 }
 
 export const UPGRADE_COST = [0, 40, 80]
@@ -31,19 +31,19 @@ export const ENEMY_STATS: Record<EnemyType, { health: number; speed: number; rew
 }
 export const ENEMIES_PER_WAVE = 10
 export const SPAWN_INTERVAL = 1500
-export const STARTING_MONEY = 300
-export const STARTING_LIVES = 30
-export const TOTAL_WAVES = 3
+export const STARTING_MONEY = 250
+export const STARTING_LIVES = 20
+export const TOTAL_WAVES = 12
 
 export const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
-  easy: 0.5,
+  easy: 0.7,
   medium: 1,
   hard: 1.5,
 }
 
 export const SPLASH_RADIUS = 50
-export const SLOW_FACTOR = 0.7
-export const SLOW_DURATION = 2000
+export const SLOW_FACTOR = 0.5
+export const SLOW_DURATION = 2500
 export const PATH_CLEARANCE = 30
 export const SELL_RATIO = 0.5
 

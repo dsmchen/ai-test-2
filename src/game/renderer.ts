@@ -2,10 +2,10 @@ import { GameState, TowerType } from './types'
 import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, PATH, TOWER_STATS } from './constants'
 
 const ENEMY_COLORS: Record<string, string> = {
-  normal: '#ff4444',
-  fast: '#ff8844',
-  tank: '#aa4444',
-  boss: '#ff00ff',
+  normal: '#e5e7eb',
+  fast: '#9ca3af',
+  tank: '#4b5563',
+  boss: '#1f2937',
 }
 
 const TOWER_EMOJI: Record<string, string> = {
@@ -63,10 +63,21 @@ export function render(
   }
 
   for (const enemy of game.enemies) {
-    ctx.fillStyle = ENEMY_COLORS[enemy.type] || '#ff4444'
+    ctx.fillStyle = ENEMY_COLORS[enemy.type] || '#e5e7eb'
     if (enemy.type === 'boss') {
-      ctx.fillRect(enemy.x - 15, enemy.y - 15, 30, 30)
+      ctx.beginPath()
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2
+        const px = enemy.x + 14 * Math.cos(angle)
+        const py = enemy.y + 14 * Math.sin(angle)
+        if (i === 0) ctx.moveTo(px, py)
+        else ctx.lineTo(px, py)
+      }
+      ctx.closePath()
+      ctx.fill()
     } else if (enemy.type === 'tank') {
+      ctx.fillRect(enemy.x - 12, enemy.y - 12, 24, 24)
+    } else if (enemy.type === 'fast') {
       ctx.beginPath()
       ctx.moveTo(enemy.x, enemy.y - 14)
       ctx.lineTo(enemy.x + 14, enemy.y + 10)

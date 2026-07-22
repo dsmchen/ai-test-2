@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER, ENEMIES_PER_WAVE, SPAWN_INTERVAL, SELL_RATIO, TOWER_STATS } from '../game/constants'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER, ENEMIES_PER_WAVE, SPAWN_INTERVAL, SELL_RATIO, TOWER_STATS, TOTAL_WAVES } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
@@ -43,6 +43,7 @@ function Game() {
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null)
   const [placementValid, setPlacementValid] = useState<'money' | 'tower' | 'path' | null>(null)
   const [toast, setToast] = useState<Toast | null>(null)
+  const [gameSpeed, setGameSpeed] = useState(1)
   const toastTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
   const hoverPosRef = useRef<{ x: number; y: number } | null>(null)
   const placementValidRef = useRef<'money' | 'tower' | 'path' | null>(null)
@@ -138,6 +139,56 @@ function Game() {
     }
   }
 
+  const togglePause = useCallback(() => {
+    const game = gameRef.current
+    game.paused = !game.paused
+  }, [])
+
+  const cycleSpeed = useCallback(() => {
+    setGameSpeed(prev => prev === 1 ? 2 : prev === 2 ? 3 : 1)
+  }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gameOver) return
+      switch (e.key) {
+        case ' ':
+          e.preventDefault()
+          togglePause()
+          break
+        case 'f':
+        case 'F':
+          cycleSpeed()
+          break
+        case '1':
+          setSelectedTower('basic')
+          break
+        case '2':
+          setSelectedTower('sniper')
+          break
+        case '3':
+          setSelectedTower('splash')
+          break
+        case '4':
+          setSelectedTower('slow')
+          break
+        case 'Escape':
+          setSelectedPlacedTower(null)
+          break
+        case 'u':
+        case 'U':
+          handleUpgrade()
+          break
+        case 's':
+        case 'S':
+          handleSell()
+          break
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [gameOver, togglePause, cycleSpeed])
+
   const resetGame = () => {
     gameRef.current = createInitialState()
     setMoney(STARTING_MONEY)
@@ -160,10 +211,15 @@ function Game() {
     const gameLoop = (timestamp: number) => {
       if (cancelled) return
       const game = gameRef.current
-      game.lastTimestamp = timestamp
 
-      if (!gameOver) {
-        if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL) {
+      if (game.lastTimestamp > 0) {
+        game.deltaTime = Math.min(timestamp - game.lastTimestamp, 50)
+      }
+      game.lastTimestamp = timestamp
+      game.gameSpeed = gameSpeed
+
+      if (!gameOver && !game.paused) {
+        if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL / gameSpeed) {
           spawnEnemy(game, difficulty)
           game.lastSpawn = timestamp
         }
@@ -183,8 +239,8 @@ function Game() {
           setGameOver('lost')
         }
 
-        setMoney(game.money)
-        setLives(game.lives)
+        if (game.money !== money) setMoney(game.money)
+        if (game.lives !== lives) setLives(game.lives)
       }
 
       render(ctx, game, hoverPosRef.current, selectedTower, placementValidRef.current)
@@ -197,7 +253,7 @@ function Game() {
       cancelled = true
       cancelAnimationFrame(gameRef.current.animationId)
     }
-  }, [gameOver, wave, difficulty, selectedTower])
+  }, [gameOver, wave, difficulty, selectedTower, gameSpeed, money, lives])
 
   const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
   const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
@@ -253,16 +309,41 @@ function Game() {
       )}
 
       {!waveStarted && !gameOver && (
-        <div
-          className="p-[2px] rounded-[5px]"
-          style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
-        >
-          <button
-            onClick={startWave}
-            className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]"
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <span>Wave {wave}:</span>
+            <span>{ENEMIES_PER_WAVE} enemies</span>
+            {wave === TOTAL_WAVES && <span className="text-purple-400">+ Boss</span>}
+          </div>
+          <div
+            className="p-[2px] rounded-[5px]"
+            style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
           >
-            Start Wave {wave}
+            <button
+              onClick={startWave}
+              className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]"
+            >
+              Start Wave {wave}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {waveStarted && !gameOver && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={togglePause}
+            className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm"
+          >
+            {gameRef.current.paused ? '▶ Resume' : '⏸ Pause'}
           </button>
+          <button
+            onClick={cycleSpeed}
+            className={`px-3 py-1 rounded text-sm text-white ${gameSpeed > 1 ? 'bg-blue-700 hover:bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+          >
+            {gameSpeed}x
+          </button>
+          <span className="text-gray-500 text-xs">Space=pause F=speed 1-4=tower</span>
         </div>
       )}
 
