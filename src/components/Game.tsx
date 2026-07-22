@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
 import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER, ENEMIES_PER_WAVE, SPAWN_INTERVAL, SELL_RATIO, TOWER_STATS } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
   placeTower,
+  canPlaceTower,
   upgradeTower,
   sellTower,
   getTowerStats,
@@ -18,6 +19,17 @@ import { render } from '../game/renderer'
 import HUD from './HUD'
 import TowerSelector from './TowerSelector'
 
+interface Toast {
+  message: string
+  type: 'error' | 'success'
+}
+
+const TOAST_MESSAGES: Record<string, string> = {
+  money: 'Not enough money',
+  tower: 'Too close to another tower',
+  path: 'Too close to the path',
+}
+
 function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [money, setMoney] = useState(STARTING_MONEY)
@@ -28,6 +40,9 @@ function Game() {
   const [gameOver, setGameOver] = useState<'won' | 'lost' | null>(null)
   const [waveStarted, setWaveStarted] = useState(false)
   const [difficulty, setDifficulty] = useState<Difficulty>('medium')
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null)
+  const [toast, setToast] = useState<Toast | null>(null)
+  const toastTimeout = useRef<ReturnType<typeof setTimeout>>()
 
   const gameRef = useRef(createInitialState())
 
@@ -37,6 +52,12 @@ function Game() {
     game.waveStarted = true
     setWaveStarted(true)
   }
+
+  const showToast = useCallback((message: string, type: 'error' | 'success') => {
+    if (toastTimeout.current) clearTimeout(toastTimeout.current)
+    setToast({ message, type })
+    toastTimeout.current = setTimeout(() => setToast(null), 1500)
+  }, [])
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (gameOver) return
@@ -65,7 +86,27 @@ function Game() {
 
     if (placeTower(game, gridX, gridY, selectedTower)) {
       setMoney(game.money)
+      showToast('Tower placed!', 'success')
+    } else {
+      const reason = canPlaceTower(game, gridX, gridY, selectedTower)
+      if (reason) {
+        showToast(TOAST_MESSAGES[reason], 'error')
+      }
     }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const gridX = Math.floor(x / CELL_SIZE) * CELL_SIZE + CELL_SIZE / 2
+    const gridY = Math.floor(y / CELL_SIZE) * CELL_SIZE + CELL_SIZE / 2
+    setHoverPos({ x: gridX, y: gridY })
+  }
+
+  const handleMouseLeave = () => {
+    setHoverPos(null)
   }
 
   const handleUpgrade = () => {
@@ -135,7 +176,7 @@ function Game() {
         setLives(game.lives)
       }
 
-      render(ctx, game)
+      render(ctx, game, hoverPos, selectedTower, !gameOver && hoverPos ? canPlaceTower(game, hoverPos.x, hoverPos.y, selectedTower) : null)
       game.animationId = requestAnimationFrame(gameLoop)
     }
 
@@ -215,11 +256,29 @@ function Game() {
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
           onClick={handleCanvasClick}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
           role="img"
           aria-label="Game board"
-          className="cursor-crosshair rounded-[5px] block"
+          className={`rounded-[5px] block ${
+            gameOver ? 'cursor-default' : hoverPos
+              ? canPlaceTower(gameRef.current, hoverPos.x, hoverPos.y, selectedTower) === null
+                ? 'cursor-pointer'
+                : 'cursor-not-allowed'
+              : 'cursor-crosshair'
+          }`}
         />
       </div>
+
+      {toast && (
+        <div
+          className={`px-4 py-2 rounded text-sm text-white transition-opacity ${
+            toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
 
       {selectedPlacedTower && !gameOver && (
         <div className="flex items-center gap-4 bg-gray-800 px-4 py-2 rounded">
