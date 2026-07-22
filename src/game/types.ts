@@ -33,6 +33,7 @@ export interface Projectile {
   speed: number
   splashRadius?: number
   slowFactor?: number
+  towerType: TowerType
 }
 
 export interface GameState {

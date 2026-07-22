@@ -174,6 +174,7 @@ export function updateTowers(game: GameState, timestamp: number) {
             speed: 5,
             splashRadius: tower.type === 'splash' ? SPLASH_RADIUS : undefined,
             slowFactor: tower.type === 'slow' ? SLOW_FACTOR : undefined,
+            towerType: tower.type,
           })
           tower.lastFired = timestamp
           break

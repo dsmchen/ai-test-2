@@ -208,6 +208,11 @@ function Game() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    const dpr = window.devicePixelRatio || 1
+    canvas.width = CANVAS_WIDTH * dpr
+    canvas.height = CANVAS_HEIGHT * dpr
+    ctx.scale(dpr, dpr)
+
     let cancelled = false
 
     const gameLoop = (timestamp: number) => {
@@ -245,7 +250,7 @@ function Game() {
         if (game.lives !== lives) setLives(game.lives)
       }
 
-      render(ctx, game, hoverPosRef.current, selectedTower, placementValidRef.current)
+      render(ctx, game, hoverPosRef.current, selectedTower, placementValidRef.current, selectedPlacedTower?.id ?? null)
       game.animationId = requestAnimationFrame(gameLoop)
     }
 
@@ -255,7 +260,7 @@ function Game() {
       cancelled = true
       cancelAnimationFrame(gameRef.current.animationId)
     }
-  }, [gameOver, wave, difficulty, selectedTower, gameSpeed, money, lives])
+  }, [gameOver, wave, difficulty, selectedTower, gameSpeed, money, lives]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
   const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost

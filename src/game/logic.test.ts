@@ -330,7 +330,7 @@ describe('updateProjectiles', () => {
   it('deals damage when projectile reaches target', () => {
     const game = makeGame({
       enemies: [makeEnemy({ id: 2, x: 100, y: 100, health: 80 })],
-      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 10, speed: 5 }],
+      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, towerType: 'basic' }],
     })
     updateProjectiles(game)
     expect(game.enemies[0].health).toBe(70)
@@ -339,7 +339,7 @@ describe('updateProjectiles', () => {
   it('removes projectile after hitting', () => {
     const game = makeGame({
       enemies: [makeEnemy({ id: 2, x: 100, y: 100 })],
-      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 10, speed: 5 }],
+      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, towerType: 'basic' }],
     })
     updateProjectiles(game)
     expect(game.projectiles).toHaveLength(0)
@@ -349,7 +349,7 @@ describe('updateProjectiles', () => {
     const game = makeGame({
       money: 100,
       enemies: [makeEnemy({ id: 2, x: 100, y: 100, health: 5, reward: 15 })],
-      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 10, speed: 5 }],
+      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, towerType: 'basic' }],
     })
     updateProjectiles(game)
     expect(game.money).toBe(115)
@@ -360,7 +360,7 @@ describe('updateProjectiles', () => {
     const game = makeGame({
       deltaTime: 16.67,
       enemies: [makeEnemy({ id: 2, x: 200, y: 200 })],
-      projectiles: [{ id: 3, x: 100, y: 100, targetId: 2, damage: 10, speed: 5 }],
+      projectiles: [{ id: 3, x: 100, y: 100, targetId: 2, damage: 10, speed: 5, towerType: 'basic' }],
     })
     updateProjectiles(game)
     expect(game.projectiles[0].x).toBeGreaterThan(100)
@@ -369,7 +369,7 @@ describe('updateProjectiles', () => {
 
   it('removes projectile when target is dead', () => {
     const game = makeGame({
-      projectiles: [{ id: 3, x: 100, y: 100, targetId: 999, damage: 10, speed: 5 }],
+      projectiles: [{ id: 3, x: 100, y: 100, targetId: 999, damage: 10, speed: 5, towerType: 'basic' }],
     })
     updateProjectiles(game)
     expect(game.projectiles).toHaveLength(0)
@@ -382,8 +382,8 @@ describe('updateProjectiles', () => {
         makeEnemy({ id: 3, x: 200, y: 200, health: 80 }),
       ],
       projectiles: [
-        { id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5 },
-        { id: 5, x: 205, y: 200, targetId: 3, damage: 10, speed: 5 },
+        { id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, towerType: 'basic' },
+        { id: 5, x: 205, y: 200, targetId: 3, damage: 10, speed: 5, towerType: 'basic' },
       ],
     })
     updateProjectiles(game)
@@ -569,7 +569,7 @@ describe('splash tower AoE damage', () => {
         makeEnemy({ id: 2, x: 100, y: 100, health: 80 }),
         makeEnemy({ id: 3, x: 120, y: 100, health: 80 }),
       ],
-      projectiles: [{ id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, splashRadius: SPLASH_RADIUS }],
+      projectiles: [{ id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, splashRadius: SPLASH_RADIUS, towerType: 'splash' }],
     })
     updateProjectiles(game)
     expect(game.enemies.find(e => e.id === 2)!.health).toBe(70)
@@ -582,7 +582,7 @@ describe('splash tower AoE damage', () => {
         makeEnemy({ id: 2, x: 100, y: 100, health: 80 }),
         makeEnemy({ id: 3, x: 200, y: 200, health: 80 }),
       ],
-      projectiles: [{ id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, splashRadius: SPLASH_RADIUS }],
+      projectiles: [{ id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, splashRadius: SPLASH_RADIUS, towerType: 'splash' }],
     })
     updateProjectiles(game)
     expect(game.enemies.find(e => e.id === 2)!.health).toBe(70)
@@ -613,7 +613,7 @@ describe('slow tower speed reduction', () => {
     const game = makeGame({
       lastTimestamp: 1000,
       enemies: [makeEnemy({ id: 2, x: 100, y: 100, health: 80 })],
-      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 5, speed: 5, slowFactor: SLOW_FACTOR }],
+      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 5, speed: 5, slowFactor: SLOW_FACTOR, towerType: 'slow' }],
     })
     updateProjectiles(game)
     expect(game.enemies[0].slowUntil).toBe(1000 + SLOW_DURATION)

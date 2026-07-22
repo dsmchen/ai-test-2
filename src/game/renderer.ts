@@ -5,7 +5,7 @@ const ENEMY_COLORS: Record<string, string> = {
   normal: '#e5e7eb',
   fast: '#9ca3af',
   tank: '#4b5563',
-  boss: '#1f2937',
+  boss: '#fbbf24',
 }
 
 const TOWER_EMOJI: Record<string, string> = {
@@ -15,12 +15,20 @@ const TOWER_EMOJI: Record<string, string> = {
   slow: '🐌',
 }
 
+const PROJECTILE_COLORS: Record<string, string> = {
+  basic: '#ffff00',
+  sniper: '#ffffff',
+  splash: '#ff6666',
+  slow: '#66b3ff',
+}
+
 export function render(
   ctx: CanvasRenderingContext2D,
   game: GameState,
   hoverPos: { x: number; y: number } | null,
   hoverTowerType: TowerType | null,
-  placementValid: 'money' | 'tower' | 'path' | null
+  placementValid: 'money' | 'tower' | 'path' | null,
+  selectedTowerId: number | null
 ) {
   ctx.fillStyle = '#1a1a2e'
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -39,6 +47,17 @@ export function render(
     ctx.lineTo(CANVAS_WIDTH, y)
     ctx.stroke()
   }
+
+  ctx.strokeStyle = '#3a3a5a'
+  ctx.lineWidth = 10
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  ctx.moveTo(PATH[0].x, PATH[0].y)
+  for (let i = 1; i < PATH.length; i++) {
+    ctx.lineTo(PATH[i].x, PATH[i].y)
+  }
+  ctx.stroke()
 
   ctx.strokeStyle = '#4a4a6a'
   ctx.lineWidth = 2
@@ -68,8 +87,8 @@ export function render(
       ctx.beginPath()
       for (let i = 0; i < 5; i++) {
         const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2
-        const px = enemy.x + 14 * Math.cos(angle)
-        const py = enemy.y + 14 * Math.sin(angle)
+        const px = enemy.x + 18 * Math.cos(angle)
+        const py = enemy.y + 18 * Math.sin(angle)
         if (i === 0) ctx.moveTo(px, py)
         else ctx.lineTo(px, py)
       }
@@ -93,8 +112,8 @@ export function render(
     ctx.fillRect(enemy.x - 15, enemy.y - 20, 30 * (enemy.health / enemy.maxHealth), 4)
   }
 
-  ctx.fillStyle = '#ffff00'
   for (const proj of game.projectiles) {
+    ctx.fillStyle = PROJECTILE_COLORS[proj.towerType] || '#ffff00'
     ctx.beginPath()
     ctx.arc(proj.x, proj.y, 3, 0, Math.PI * 2)
     ctx.fill()
@@ -121,5 +140,19 @@ export function render(
     ctx.arc(hoverPos.x, hoverPos.y, stats.range, 0, Math.PI * 2)
     ctx.stroke()
     ctx.setLineDash([])
+  }
+
+  if (selectedTowerId) {
+    const tower = game.towers.find(t => t.id === selectedTowerId)
+    if (tower) {
+      const stats = TOWER_STATS[tower.type]
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([5, 5])
+      ctx.beginPath()
+      ctx.arc(tower.x, tower.y, stats.range, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.setLineDash([])
+    }
   }
 }
