@@ -285,7 +285,7 @@ function Game() {
 
       {toast && (
         <div
-          className={`absolute left-1/2 -translate-x-1/2 mt-2 px-4 py-2 rounded text-sm text-white z-10 animate-slide-up ${
+          className={`absolute left-1/2 -translate-x-1/2 bottom-4 px-4 py-2 rounded text-sm text-white z-10 animate-slide-up ${
             toast.type === 'error' ? 'bg-red-700' : 'bg-green-700'
           }`}
         >
