@@ -4,6 +4,10 @@ A browser-based tower defense game built with React, TypeScript, Vite, and Canva
 
 ## Play
 
+[Play online](https://ai-test-2-three.vercel.app/)
+
+Or run locally:
+
 ```bash
 npm install
 npm run dev
