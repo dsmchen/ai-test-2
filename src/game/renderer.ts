@@ -16,10 +16,10 @@ const TOWER_EMOJI: Record<string, string> = {
 }
 
 const PROJECTILE_COLORS: Record<string, string> = {
-  basic: '#ffff00',
+  basic: '#66b3ff',
   sniper: '#ffffff',
   splash: '#ff6666',
-  slow: '#66b3ff',
+  slow: '#ffff00',
 }
 
 export function render(
