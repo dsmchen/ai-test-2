@@ -360,8 +360,7 @@ function Game() {
       >
         <canvas
           ref={canvasRef}
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
+          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
           onClick={handleCanvasClick}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
