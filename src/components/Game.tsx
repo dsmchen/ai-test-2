@@ -41,8 +41,11 @@ function Game() {
   const [waveStarted, setWaveStarted] = useState(false)
   const [difficulty, setDifficulty] = useState<Difficulty>('medium')
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null)
+  const [placementValid, setPlacementValid] = useState<'money' | 'tower' | 'path' | null>(null)
   const [toast, setToast] = useState<Toast | null>(null)
-  const toastTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const toastTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const hoverPosRef = useRef<{ x: number; y: number } | null>(null)
+  const placementValidRef = useRef<'money' | 'tower' | 'path' | null>(null)
 
   const gameRef = useRef(createInitialState())
 
@@ -102,11 +105,19 @@ function Game() {
     const y = e.clientY - rect.top
     const gridX = Math.floor(x / CELL_SIZE) * CELL_SIZE + CELL_SIZE / 2
     const gridY = Math.floor(y / CELL_SIZE) * CELL_SIZE + CELL_SIZE / 2
-    setHoverPos({ x: gridX, y: gridY })
+    const pos = { x: gridX, y: gridY }
+    const valid = gameOver ? null : canPlaceTower(gameRef.current, gridX, gridY, selectedTower)
+    setHoverPos(pos)
+    setPlacementValid(valid)
+    hoverPosRef.current = pos
+    placementValidRef.current = valid
   }
 
   const handleMouseLeave = () => {
     setHoverPos(null)
+    setPlacementValid(null)
+    hoverPosRef.current = null
+    placementValidRef.current = null
   }
 
   const handleUpgrade = () => {
@@ -176,7 +187,7 @@ function Game() {
         setLives(game.lives)
       }
 
-      render(ctx, game, hoverPos, selectedTower, !gameOver && hoverPos ? canPlaceTower(game, hoverPos.x, hoverPos.y, selectedTower) : null)
+      render(ctx, game, hoverPosRef.current, selectedTower, placementValidRef.current)
       game.animationId = requestAnimationFrame(gameLoop)
     }
 
@@ -186,7 +197,7 @@ function Game() {
       cancelled = true
       cancelAnimationFrame(gameRef.current.animationId)
     }
-  }, [gameOver, wave, difficulty])
+  }, [gameOver, wave, difficulty, selectedTower])
 
   const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
   const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
@@ -202,6 +213,14 @@ function Game() {
     }
     return Math.round((baseCost + totalUpgradeCost) * SELL_RATIO)
   })() : 0
+
+  const cursorClass = gameOver
+    ? 'cursor-default'
+    : hoverPos
+      ? placementValid === null
+        ? 'cursor-pointer'
+        : 'cursor-not-allowed'
+      : 'cursor-crosshair'
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -260,13 +279,7 @@ function Game() {
           onMouseLeave={handleMouseLeave}
           role="img"
           aria-label="Game board"
-          className={`rounded-[5px] block ${
-            gameOver ? 'cursor-default' : hoverPos
-              ? canPlaceTower(gameRef.current, hoverPos.x, hoverPos.y, selectedTower) === null
-                ? 'cursor-pointer'
-                : 'cursor-not-allowed'
-              : 'cursor-crosshair'
-          }`}
+          className={`rounded-[5px] block ${cursorClass}`}
         />
       </div>
 
