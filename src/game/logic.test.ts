@@ -4,6 +4,7 @@ import {
   spawnEnemy,
   placeTower,
   upgradeTower,
+  sellTower,
   getTowerStats,
   updateEnemies,
   updateTowers,
@@ -11,7 +12,7 @@ import {
   checkWaveComplete,
   checkGameOver,
 } from './logic'
-import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, ENEMY_STATS } from './constants'
+import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, ENEMY_STATS, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO } from './constants'
 import { GameState } from './types'
 
 function makeGame(overrides?: Partial<GameState>): GameState {
@@ -20,7 +21,7 @@ function makeGame(overrides?: Partial<GameState>): GameState {
   return game
 }
 
-function makeEnemy(overrides?: { id?: number; x?: number; y?: number; health?: number; pathIndex?: number; speed?: number; reward?: number; type?: 'normal' | 'fast' | 'tank' | 'boss' }) {
+function makeEnemy(overrides?: { id?: number; x?: number; y?: number; health?: number; pathIndex?: number; speed?: number; reward?: number; type?: 'normal' | 'fast' | 'tank' | 'boss'; slowUntil?: number }) {
   return {
     id: overrides?.id ?? 1,
     type: overrides?.type ?? 'normal',
@@ -31,6 +32,7 @@ function makeEnemy(overrides?: { id?: number; x?: number; y?: number; health?: n
     speed: overrides?.speed ?? 0.8,
     pathIndex: overrides?.pathIndex ?? 0,
     reward: overrides?.reward ?? 15,
+    slowUntil: overrides?.slowUntil ?? 0,
   }
 }
 
@@ -535,5 +537,151 @@ describe('updateTowers with upgrades', () => {
     })
     updateTowers(game, 2000)
     expect(game.projectiles).toHaveLength(1)
+  })
+})
+
+describe('splash tower AoE damage', () => {
+  it('splash projectile has splashRadius set', () => {
+    const game = makeGame({
+      towers: [makeTower({ type: 'splash' })],
+      enemies: [makeEnemy({ id: 2, x: 150, y: 100 })],
+    })
+    updateTowers(game, 2000)
+    expect(game.projectiles[0].splashRadius).toBe(SPLASH_RADIUS)
+  })
+
+  it('non-splash projectile has no splashRadius', () => {
+    const game = makeGame({
+      towers: [makeTower({ type: 'basic' })],
+      enemies: [makeEnemy({ id: 2, x: 150, y: 100 })],
+    })
+    updateTowers(game, 2000)
+    expect(game.projectiles[0].splashRadius).toBeUndefined()
+  })
+
+  it('splash damage hits multiple enemies in radius', () => {
+    const game = makeGame({
+      enemies: [
+        makeEnemy({ id: 2, x: 100, y: 100, health: 80 }),
+        makeEnemy({ id: 3, x: 120, y: 100, health: 80 }),
+      ],
+      projectiles: [{ id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, splashRadius: SPLASH_RADIUS }],
+    })
+    updateProjectiles(game)
+    expect(game.enemies.find(e => e.id === 2)!.health).toBe(70)
+    expect(game.enemies.find(e => e.id === 3)!.health).toBe(70)
+  })
+
+  it('splash damage does not hit enemies outside radius', () => {
+    const game = makeGame({
+      enemies: [
+        makeEnemy({ id: 2, x: 100, y: 100, health: 80 }),
+        makeEnemy({ id: 3, x: 200, y: 200, health: 80 }),
+      ],
+      projectiles: [{ id: 4, x: 105, y: 100, targetId: 2, damage: 10, speed: 5, splashRadius: SPLASH_RADIUS }],
+    })
+    updateProjectiles(game)
+    expect(game.enemies.find(e => e.id === 2)!.health).toBe(70)
+    expect(game.enemies.find(e => e.id === 3)!.health).toBe(80)
+  })
+})
+
+describe('slow tower speed reduction', () => {
+  it('slow projectile has slowFactor set', () => {
+    const game = makeGame({
+      towers: [makeTower({ type: 'slow' })],
+      enemies: [makeEnemy({ id: 2, x: 150, y: 100 })],
+    })
+    updateTowers(game, 2000)
+    expect(game.projectiles[0].slowFactor).toBe(SLOW_FACTOR)
+  })
+
+  it('non-slow projectile has no slowFactor', () => {
+    const game = makeGame({
+      towers: [makeTower({ type: 'basic' })],
+      enemies: [makeEnemy({ id: 2, x: 150, y: 100 })],
+    })
+    updateTowers(game, 2000)
+    expect(game.projectiles[0].slowFactor).toBeUndefined()
+  })
+
+  it('slow debuff is applied on hit', () => {
+    const game = makeGame({
+      lastTimestamp: 1000,
+      enemies: [makeEnemy({ id: 2, x: 100, y: 100, health: 80 })],
+      projectiles: [{ id: 3, x: 105, y: 100, targetId: 2, damage: 5, speed: 5, slowFactor: SLOW_FACTOR }],
+    })
+    updateProjectiles(game)
+    expect(game.enemies[0].slowUntil).toBe(1000 + SLOW_DURATION)
+  })
+
+  it('enemy speed is reduced while debuff is active', () => {
+    const game = makeGame({
+      lastTimestamp: 1000,
+      enemies: [makeEnemy({ id: 1, x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 1, slowUntil: 3000 })],
+    })
+    updateEnemies(game, 2000)
+    expect(game.enemies[0].x).toBeGreaterThan(PATH[0].x)
+    const expectedDist = 1 * SLOW_FACTOR * 2
+    expect(game.enemies[0].x - PATH[0].x).toBeLessThanOrEqual(expectedDist + 0.1)
+  })
+
+  it('enemy speed returns to normal after debuff expires', () => {
+    const game = makeGame({
+      enemies: [makeEnemy({ id: 1, x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 1, slowUntil: 500 })],
+    })
+    updateEnemies(game, 1000)
+    const expectedDist = 1 * 2
+    expect(game.enemies[0].x - PATH[0].x).toBeGreaterThan(expectedDist - 0.1)
+  })
+})
+
+describe('path collision check', () => {
+  it('rejects placement on the path', () => {
+    const game = makeGame({ money: 200 })
+    const pathPoint = PATH[1]
+    const placed = placeTower(game, pathPoint.x, pathPoint.y, 'basic')
+    expect(placed).toBe(false)
+    expect(game.towers).toHaveLength(0)
+  })
+
+  it('allows placement far from the path', () => {
+    const game = makeGame({ money: 200 })
+    const placed = placeTower(game, 400, 300, 'basic')
+    expect(placed).toBe(true)
+    expect(game.towers).toHaveLength(1)
+  })
+
+  it('rejects placement within PATH_CLEARANCE of path', () => {
+    const game = makeGame({ money: 200 })
+    const pathPoint = PATH[1]
+    const placed = placeTower(game, pathPoint.x + PATH_CLEARANCE - 5, pathPoint.y, 'basic')
+    expect(placed).toBe(false)
+    expect(game.towers).toHaveLength(0)
+  })
+})
+
+describe('sellTower', () => {
+  it('sells tower and returns 50% of base cost', () => {
+    const game = makeGame({ money: 100, towers: [makeTower({ id: 1, type: 'basic', level: 1 })] })
+    const result = sellTower(game, 1)
+    expect(result).toBe(true)
+    expect(game.towers).toHaveLength(0)
+    expect(game.money).toBe(100 + Math.round(TOWER_STATS.basic.cost * SELL_RATIO))
+  })
+
+  it('sells upgraded tower and returns 50% of total investment', () => {
+    const game = makeGame({ money: 100, towers: [makeTower({ id: 1, type: 'basic', level: 2 })] })
+    const result = sellTower(game, 1)
+    expect(result).toBe(true)
+    expect(game.towers).toHaveLength(0)
+    const totalInvestment = TOWER_STATS.basic.cost + UPGRADE_COST[1]
+    expect(game.money).toBe(100 + Math.round(totalInvestment * SELL_RATIO))
+  })
+
+  it('returns false for non-existent tower', () => {
+    const game = makeGame({ money: 100 })
+    const result = sellTower(game, 999)
+    expect(result).toBe(false)
   })
 })
