@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER, ENEMIES_PER_WAVE, SPAWN_INTERVAL } from '../game/constants'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER, ENEMIES_PER_WAVE, SPAWN_INTERVAL, SELL_RATIO, TOWER_STATS } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
   placeTower,
   upgradeTower,
+  sellTower,
   getTowerStats,
   updateEnemies,
   updateTowers,
@@ -76,6 +77,15 @@ function Game() {
     }
   }
 
+  const handleSell = () => {
+    if (!selectedPlacedTower) return
+    const game = gameRef.current
+    if (sellTower(game, selectedPlacedTower.id)) {
+      setMoney(game.money)
+      setSelectedPlacedTower(null)
+    }
+  }
+
   const resetGame = () => {
     gameRef.current = createInitialState()
     setMoney(STARTING_MONEY)
@@ -142,6 +152,15 @@ function Game() {
   const upgradedStats = selectedPlacedTower && selectedPlacedTower.level < 3
     ? getTowerStats({ ...selectedPlacedTower, level: selectedPlacedTower.level + 1 })
     : null
+
+  const sellValue = selectedPlacedTower ? (() => {
+    const baseCost = TOWER_STATS[selectedPlacedTower.type].cost
+    let totalUpgradeCost = 0
+    for (let i = 1; i < selectedPlacedTower.level; i++) {
+      totalUpgradeCost += UPGRADE_COST[i]
+    }
+    return Math.round((baseCost + totalUpgradeCost) * SELL_RATIO)
+  })() : 0
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -218,6 +237,12 @@ function Game() {
           ) : (
             <span className="text-gray-300">Max Level</span>
           )}
+          <button
+            onClick={handleSell}
+            className="px-3 py-1 rounded bg-red-700 hover:bg-red-600 text-white"
+          >
+            Sell (${sellValue})
+          </button>
           {upgradedStats && (
             <span className="text-gray-300 text-sm">
               → Dmg {upgradedStats.damage} | Rng {upgradedStats.range} | Rate {Math.round(upgradedStats.fireRate)}ms

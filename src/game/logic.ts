@@ -1,5 +1,5 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE } from './constants'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO } from './constants'
 
 function distanceToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
   const dx = bx - ax
@@ -103,6 +103,22 @@ export function upgradeTower(game: GameState, towerId: number): boolean {
 
   game.money -= cost
   tower.level++
+  return true
+}
+
+export function sellTower(game: GameState, towerId: number): boolean {
+  const towerIndex = game.towers.findIndex(t => t.id === towerId)
+  if (towerIndex === -1) return false
+
+  const tower = game.towers[towerIndex]
+  const baseCost = TOWER_STATS[tower.type].cost
+  let totalUpgradeCost = 0
+  for (let i = 1; i < tower.level; i++) {
+    totalUpgradeCost += UPGRADE_COST[i]
+  }
+  const refund = Math.round((baseCost + totalUpgradeCost) * SELL_RATIO)
+  game.money += refund
+  game.towers.splice(towerIndex, 1)
   return true
 }
 

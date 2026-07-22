@@ -45,6 +45,7 @@ export const SPLASH_RADIUS = 50
 export const SLOW_FACTOR = 0.7
 export const SLOW_DURATION = 2000
 export const PATH_CLEARANCE = 30
+export const SELL_RATIO = 0.5
 
 export const DIFFICULTY_COLOR: Record<Difficulty, string> = {
   easy: '#15803D',
