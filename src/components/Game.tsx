@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, DIFFICULTY_MULTIPLIER, ENEMIES_PER_WAVE, SPAWN_INTERVAL, SELL_RATIO, TOWER_STATS, TOTAL_WAVES } from '../game/constants'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, ENEMIES_PER_WAVE, SPAWN_INTERVAL, SELL_RATIO, TOWER_STATS } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
@@ -32,6 +32,7 @@ const TOAST_MESSAGES: Record<string, string> = {
 
 function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [phase, setPhase] = useState<'setup' | 'playing'>('setup')
   const [money, setMoney] = useState(STARTING_MONEY)
   const [lives, setLives] = useState(STARTING_LIVES)
   const [wave, setWave] = useState(1)
@@ -50,6 +51,19 @@ function Game() {
   const placementValidRef = useRef<'money' | 'tower' | 'path' | null>(null)
 
   const gameRef = useRef(createInitialState())
+
+  const startGame = () => {
+    gameRef.current = createInitialState()
+    setMoney(STARTING_MONEY)
+    setLives(STARTING_LIVES)
+    setWave(1)
+    setWaveStarted(false)
+    setGameOver(null)
+    setSelectedPlacedTower(null)
+    setGameSpeed(1)
+    setIsPaused(false)
+    setPhase('playing')
+  }
 
   const startWave = () => {
     const game = gameRef.current
@@ -199,6 +213,9 @@ function Game() {
     setWaveStarted(false)
     setGameOver(null)
     setSelectedPlacedTower(null)
+    setGameSpeed(1)
+    setIsPaused(false)
+    setPhase('setup')
   }
 
   useEffect(() => {
@@ -285,54 +302,65 @@ function Game() {
         : 'cursor-not-allowed'
       : 'cursor-crosshair'
 
+  if (phase === 'setup') {
+    return (
+      <div className="flex flex-col items-center gap-8 py-12">
+        <h1 className="text-4xl font-bold text-white">Tower Defense</h1>
+        <div className="flex flex-col items-center gap-4">
+          <span className="text-gray-300">Select Difficulty</span>
+          <div className="flex items-center gap-3">
+            {([
+              { key: 'easy' as Difficulty, color: '#15803D', label: 'Easy', desc: '0.7x stats' },
+              { key: 'medium' as Difficulty, color: '#A16207', label: 'Medium', desc: '1x stats' },
+              { key: 'hard' as Difficulty, color: '#B91C1C', label: 'Hard', desc: '1.5x stats' },
+            ]).map(({ key, color, label, desc }) => (
+              <button
+                key={key}
+                onClick={() => setDifficulty(key)}
+                aria-pressed={difficulty === key}
+                style={{
+                  backgroundColor: difficulty === key ? color : '#374151',
+                  color: '#fff',
+                }}
+                className="px-6 py-3 rounded-lg capitalize hover:opacity-80 flex flex-col items-center min-w-[100px]"
+              >
+                <span className="font-semibold">{label}</span>
+                <span className="text-xs opacity-75">{desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div
+          className="p-[2px] rounded-[5px]"
+          style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
+        >
+          <button
+            onClick={startGame}
+            className="px-8 py-3 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px] text-lg font-semibold"
+          >
+            Start Game
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative flex flex-col items-center gap-4">
       <HUD money={money} lives={lives} wave={wave} />
       <TowerSelector selected={selectedTower} onSelect={setSelectedTower} difficulty={difficulty} money={money} />
 
-      {!waveStarted && !gameOver && wave === 1 && (
-        <div className="flex items-center gap-2">
-          <span className="text-gray-300">Difficulty:</span>
-          {([
-            { key: 'easy' as Difficulty, color: '#15803D' },
-            { key: 'medium' as Difficulty, color: '#A16207' },
-            { key: 'hard' as Difficulty, color: '#B91C1C' },
-          ]).map(({ key, color }) => (
-            <button
-              key={key}
-              onClick={() => setDifficulty(key)}
-              aria-pressed={difficulty === key}
-              style={{
-                backgroundColor: difficulty === key ? color : '#374151',
-                color: '#fff',
-              }}
-              className="px-3 py-1 rounded capitalize hover:opacity-80"
-            >
-              {key}
-            </button>
-          ))}
-          <span className="text-gray-300 text-sm">({DIFFICULTY_MULTIPLIER[difficulty]}x)</span>
-        </div>
-      )}
-
       {!waveStarted && !gameOver && (
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span>Wave {wave}:</span>
-            <span>{ENEMIES_PER_WAVE} enemies</span>
-            {wave === TOTAL_WAVES && <span className="text-purple-400">+ Boss</span>}
-          </div>
-          <div
-            className="p-[2px] rounded-[5px]"
-            style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
+        <div
+          className="p-[2px] rounded-[5px]"
+          style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
+        >
+          <button
+            onClick={startWave}
+            className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]"
           >
-            <button
-              onClick={startWave}
-              className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]"
-            >
-              Start Wave {wave}
-            </button>
-          </div>
+            Start Wave {wave}
+          </button>
         </div>
       )}
 
