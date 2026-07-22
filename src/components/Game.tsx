@@ -98,6 +98,7 @@ function Game() {
     const gameLoop = (timestamp: number) => {
       if (cancelled) return
       const game = gameRef.current
+      game.lastTimestamp = timestamp
 
       if (!gameOver) {
         if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL) {
@@ -105,7 +106,7 @@ function Game() {
           game.lastSpawn = timestamp
         }
 
-        updateEnemies(game)
+        updateEnemies(game, timestamp)
         updateTowers(game, timestamp)
         updateProjectiles(game)
 

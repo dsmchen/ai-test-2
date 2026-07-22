@@ -1,5 +1,5 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS } from './constants'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION } from './constants'
 
 export function getTowerStats(tower: Tower) {
   const base = TOWER_STATS[tower.type]
@@ -24,6 +24,7 @@ export function createInitialState(): GameState {
     enemiesSpawned: 0,
     waveStarted: false,
     animationId: 0,
+    lastTimestamp: 0,
   }
 }
 
@@ -48,6 +49,7 @@ export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
     speed: stats.speed * mult,
     pathIndex: 0,
     reward: Math.round(stats.reward * mult),
+    slowUntil: 0,
   })
   game.enemiesSpawned++
 }
@@ -87,18 +89,19 @@ export function upgradeTower(game: GameState, towerId: number): boolean {
   return true
 }
 
-export function updateEnemies(game: GameState) {
+export function updateEnemies(game: GameState, timestamp: number) {
   for (const enemy of game.enemies) {
     if (enemy.pathIndex < PATH.length - 1) {
       const target = PATH[enemy.pathIndex + 1]
       const dx = target.x - enemy.x
       const dy = target.y - enemy.y
       const dist = Math.sqrt(dx * dx + dy * dy)
-      if (dist < enemy.speed * 2) {
+      const effectiveSpeed = enemy.speed * (timestamp < enemy.slowUntil ? SLOW_FACTOR : 1)
+      if (dist < effectiveSpeed * 2) {
         enemy.pathIndex++
       } else {
-        enemy.x += (dx / dist) * enemy.speed * 2
-        enemy.y += (dy / dist) * enemy.speed * 2
+        enemy.x += (dx / dist) * effectiveSpeed * 2
+        enemy.y += (dy / dist) * effectiveSpeed * 2
       }
     } else {
       game.lives--
@@ -125,6 +128,7 @@ export function updateTowers(game: GameState, timestamp: number) {
             damage: stats.damage,
             speed: 5,
             splashRadius: tower.type === 'splash' ? SPLASH_RADIUS : undefined,
+            slowFactor: tower.type === 'slow' ? SLOW_FACTOR : undefined,
           })
           tower.lastFired = timestamp
           break
@@ -152,12 +156,18 @@ export function updateProjectiles(game: GameState) {
               if (enemy.health <= 0) {
                 game.money += enemy.reward
               }
+              if (proj.slowFactor && game.lastTimestamp) {
+                enemy.slowUntil = game.lastTimestamp + SLOW_DURATION
+              }
             }
           }
         } else {
           target.health -= proj.damage
           if (target.health <= 0) {
             game.money += target.reward
+          }
+          if (proj.slowFactor && game.lastTimestamp) {
+            target.slowUntil = game.lastTimestamp + SLOW_DURATION
           }
         }
         proj.x = -100

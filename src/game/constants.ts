@@ -42,6 +42,8 @@ export const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
 }
 
 export const SPLASH_RADIUS = 50
+export const SLOW_FACTOR = 0.7
+export const SLOW_DURATION = 2000
 
 export const DIFFICULTY_COLOR: Record<Difficulty, string> = {
   easy: '#15803D',

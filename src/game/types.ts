@@ -21,6 +21,7 @@ export interface Enemy {
   speed: number
   pathIndex: number
   reward: number
+  slowUntil: number
 }
 
 export interface Projectile {
@@ -31,6 +32,7 @@ export interface Projectile {
   damage: number
   speed: number
   splashRadius?: number
+  slowFactor?: number
 }
 
 export interface GameState {
@@ -44,4 +46,5 @@ export interface GameState {
   enemiesSpawned: number
   waveStarted: boolean
   animationId: number
+  lastTimestamp: number
 }
