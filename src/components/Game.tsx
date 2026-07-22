@@ -399,7 +399,7 @@ function Game() {
       )}
 
       <div
-        className="p-[3px] rounded-[5px]"
+        className="relative p-[3px] rounded-[5px]"
         style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
       >
         <canvas
@@ -412,6 +412,24 @@ function Game() {
           aria-label="Game board"
           className={`rounded-[5px] block ${cursorClass}`}
         />
+
+        {gameOver && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-30 rounded-[5px]">
+            <div className="text-center">
+              <p className={`text-3xl font-bold mb-4 ${gameOver === 'won' ? 'text-green-300' : 'text-red-300'}`}>
+                {gameOver === 'won' ? 'You Won!' : 'Game Over'}
+              </p>
+              <div
+                className="p-[2px] rounded-[5px] inline-block"
+                style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
+              >
+                <button onClick={resetGame} className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]">
+                  Play Again
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {toast && (
@@ -451,22 +469,6 @@ function Game() {
               → Dmg {upgradedStats.damage} | Rng {upgradedStats.range} | Rate {Math.round(upgradedStats.fireRate)}ms
             </span>
           )}
-        </div>
-      )}
-
-      {gameOver && (
-        <div className="text-center">
-          <p className={`text-2xl mb-2 ${gameOver === 'won' ? 'text-green-300' : 'text-red-300'}`}>
-            {gameOver === 'won' ? 'You Won!' : 'Game Over'}
-          </p>
-          <div
-            className="p-[2px] rounded-[5px] inline-block"
-            style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
-          >
-            <button onClick={resetGame} className="px-4 py-2 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px]">
-              Play Again
-            </button>
-          </div>
         </div>
       )}
     </div>
