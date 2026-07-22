@@ -212,7 +212,7 @@ describe('updateEnemies', () => {
     const game = makeGame({
       enemies: [makeEnemy({ x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 0.8 })],
     })
-    updateEnemies(game)
+    updateEnemies(game, 0)
     expect(game.enemies[0].x).toBeGreaterThan(PATH[0].x)
   })
 
@@ -220,7 +220,7 @@ describe('updateEnemies', () => {
     const game = makeGame({
       enemies: [makeEnemy({ x: PATH[1].x - 1, y: PATH[1].y, pathIndex: 0, speed: 0.8 })],
     })
-    updateEnemies(game)
+    updateEnemies(game, 0)
     expect(game.enemies[0].pathIndex).toBe(1)
   })
 
@@ -229,7 +229,7 @@ describe('updateEnemies', () => {
     const game = makeGame({
       enemies: [makeEnemy({ x: PATH[lastIdx].x, y: PATH[lastIdx].y, pathIndex: lastIdx })],
     })
-    updateEnemies(game)
+    updateEnemies(game, 0)
     expect(game.lives).toBe(STARTING_LIVES - 1)
     expect(game.enemies).toHaveLength(0)
   })
@@ -241,7 +241,7 @@ describe('updateEnemies', () => {
         makeEnemy({ id: 2, x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 1.5 }),
       ],
     })
-    updateEnemies(game)
+    updateEnemies(game, 0)
     expect(game.enemies).toHaveLength(2)
     const e1 = game.enemies.find(e => e.id === 1)!
     const e2 = game.enemies.find(e => e.id === 2)!
@@ -256,7 +256,7 @@ describe('updateEnemies', () => {
         makeEnemy({ id: 2, x: PATH[lastIdx].x, y: PATH[lastIdx].y, pathIndex: lastIdx }),
       ],
     })
-    updateEnemies(game)
+    updateEnemies(game, 0)
     expect(game.lives).toBe(STARTING_LIVES - 2)
     expect(game.enemies).toHaveLength(0)
   })
