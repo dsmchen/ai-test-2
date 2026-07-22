@@ -37,6 +37,9 @@ export function createInitialState(): GameState {
     waveStarted: false,
     animationId: 0,
     lastTimestamp: 0,
+    deltaTime: 0,
+    gameSpeed: 1,
+    paused: false,
   }
 }
 
@@ -130,6 +133,7 @@ export function sellTower(game: GameState, towerId: number): boolean {
 }
 
 export function updateEnemies(game: GameState, timestamp: number) {
+  const dt = game.deltaTime * game.gameSpeed
   for (const enemy of game.enemies) {
     if (enemy.pathIndex < PATH.length - 1) {
       const target = PATH[enemy.pathIndex + 1]
@@ -137,11 +141,12 @@ export function updateEnemies(game: GameState, timestamp: number) {
       const dy = target.y - enemy.y
       const dist = Math.sqrt(dx * dx + dy * dy)
       const effectiveSpeed = enemy.speed * (timestamp < enemy.slowUntil ? SLOW_FACTOR : 1)
-      if (dist < effectiveSpeed * 2) {
+      const moveAmount = effectiveSpeed * dt * 0.06
+      if (dist < moveAmount) {
         enemy.pathIndex++
       } else {
-        enemy.x += (dx / dist) * effectiveSpeed * 2
-        enemy.y += (dy / dist) * effectiveSpeed * 2
+        enemy.x += (dx / dist) * moveAmount
+        enemy.y += (dy / dist) * moveAmount
       }
     } else {
       game.lives--
@@ -179,6 +184,7 @@ export function updateTowers(game: GameState, timestamp: number) {
 }
 
 export function updateProjectiles(game: GameState) {
+  const dt = game.deltaTime * game.gameSpeed
   for (const proj of game.projectiles) {
     const target = game.enemies.find(e => e.id === proj.targetId)
     if (target) {
@@ -212,8 +218,9 @@ export function updateProjectiles(game: GameState) {
         }
         proj.x = -100
       } else {
-        proj.x += (dx / dist) * proj.speed
-        proj.y += (dy / dist) * proj.speed
+        const moveSpeed = proj.speed * dt * 0.06
+        proj.x += (dx / dist) * moveSpeed
+        proj.y += (dy / dist) * moveSpeed
       }
     } else {
       proj.x = -100

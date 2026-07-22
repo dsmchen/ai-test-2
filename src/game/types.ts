@@ -47,4 +47,7 @@ export interface GameState {
   waveStarted: boolean
   animationId: number
   lastTimestamp: number
+  deltaTime: number
+  gameSpeed: number
+  paused: boolean
 }
