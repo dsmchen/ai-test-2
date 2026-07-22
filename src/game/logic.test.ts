@@ -12,7 +12,7 @@ import {
   checkWaveComplete,
   checkGameOver,
 } from './logic'
-import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, ENEMY_STATS, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO } from './constants'
+import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, ENEMY_STATS, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, TOTAL_WAVES } from './constants'
 import { GameState } from './types'
 
 function makeGame(overrides?: Partial<GameState>): GameState {
@@ -107,9 +107,9 @@ describe('spawnEnemy', () => {
     expect(game.enemies[0].type).toBe('tank')
   })
 
-  it('spawns boss on wave 3 when last enemy', () => {
+  it('spawns boss on last wave when last enemy', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.9)
-    const game = makeGame({ waveStarted: true, wave: 3, enemiesSpawned: ENEMIES_PER_WAVE - 1 })
+    const game = makeGame({ waveStarted: true, wave: TOTAL_WAVES, enemiesSpawned: ENEMIES_PER_WAVE - 1 })
     spawnEnemy(game)
     expect(game.enemies[0].type).toBe('boss')
   })
@@ -210,6 +210,7 @@ describe('placeTower', () => {
 describe('updateEnemies', () => {
   it('moves enemies toward the next path point', () => {
     const game = makeGame({
+      deltaTime: 16.67,
       enemies: [makeEnemy({ x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 0.8 })],
     })
     updateEnemies(game, 0)
@@ -218,7 +219,8 @@ describe('updateEnemies', () => {
 
   it('increments pathIndex when enemy is close enough to next point', () => {
     const game = makeGame({
-      enemies: [makeEnemy({ x: PATH[1].x - 1, y: PATH[1].y, pathIndex: 0, speed: 0.8 })],
+      deltaTime: 16.67,
+      enemies: [makeEnemy({ x: PATH[1].x - 0.5, y: PATH[1].y, pathIndex: 0, speed: 0.8 })],
     })
     updateEnemies(game, 0)
     expect(game.enemies[0].pathIndex).toBe(1)
@@ -236,6 +238,7 @@ describe('updateEnemies', () => {
 
   it('moves multiple enemies independently', () => {
     const game = makeGame({
+      deltaTime: 16.67,
       enemies: [
         makeEnemy({ id: 1, x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 0.8 }),
         makeEnemy({ id: 2, x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 1.5 }),
@@ -355,6 +358,7 @@ describe('updateProjectiles', () => {
 
   it('moves projectile toward target on both axes', () => {
     const game = makeGame({
+      deltaTime: 16.67,
       enemies: [makeEnemy({ id: 2, x: 200, y: 200 })],
       projectiles: [{ id: 3, x: 100, y: 100, targetId: 2, damage: 10, speed: 5 }],
     })
@@ -422,7 +426,7 @@ describe('checkWaveComplete', () => {
     expect(game.waveStarted).toBe(false)
   })
 
-  it('advances to wave 3 when wave 2 is complete', () => {
+  it('advances to next wave when wave is complete', () => {
     const game = makeGame({
       enemiesSpawned: ENEMIES_PER_WAVE,
       wave: 2,
@@ -433,14 +437,14 @@ describe('checkWaveComplete', () => {
     expect(game.enemiesSpawned).toBe(0)
   })
 
-  it('returns true when wave 3 is complete', () => {
+  it('returns true when last wave is complete', () => {
     const game = makeGame({
       enemiesSpawned: ENEMIES_PER_WAVE,
-      wave: 3,
+      wave: TOTAL_WAVES,
       waveStarted: true,
     })
     expect(checkWaveComplete(game)).toBe(true)
-    expect(game.wave).toBe(3)
+    expect(game.wave).toBe(TOTAL_WAVES)
   })
 })
 
@@ -617,21 +621,23 @@ describe('slow tower speed reduction', () => {
 
   it('enemy speed is reduced while debuff is active', () => {
     const game = makeGame({
+      deltaTime: 16.67,
       lastTimestamp: 1000,
       enemies: [makeEnemy({ id: 1, x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 1, slowUntil: 3000 })],
     })
     updateEnemies(game, 2000)
     expect(game.enemies[0].x).toBeGreaterThan(PATH[0].x)
-    const expectedDist = 1 * SLOW_FACTOR * 2
+    const expectedDist = 1 * SLOW_FACTOR * 0.06 * 16.67
     expect(game.enemies[0].x - PATH[0].x).toBeLessThanOrEqual(expectedDist + 0.1)
   })
 
   it('enemy speed returns to normal after debuff expires', () => {
     const game = makeGame({
+      deltaTime: 16.67,
       enemies: [makeEnemy({ id: 1, x: PATH[0].x, y: PATH[0].y, pathIndex: 0, speed: 1, slowUntil: 500 })],
     })
     updateEnemies(game, 1000)
-    const expectedDist = 1 * 2
+    const expectedDist = 1 * 0.06 * 16.67
     expect(game.enemies[0].x - PATH[0].x).toBeGreaterThan(expectedDist - 0.1)
   })
 })
