@@ -30,6 +30,7 @@ export interface Projectile {
   targetId: number
   damage: number
   speed: number
+  splashRadius?: number
 }
 
 export interface GameState {

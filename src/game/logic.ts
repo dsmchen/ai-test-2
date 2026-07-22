@@ -1,5 +1,5 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES } from './constants'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS } from './constants'
 
 export function getTowerStats(tower: Tower) {
   const base = TOWER_STATS[tower.type]
@@ -124,6 +124,7 @@ export function updateTowers(game: GameState, timestamp: number) {
             targetId: enemy.id,
             damage: stats.damage,
             speed: 5,
+            splashRadius: tower.type === 'splash' ? SPLASH_RADIUS : undefined,
           })
           tower.lastFired = timestamp
           break
@@ -141,9 +142,23 @@ export function updateProjectiles(game: GameState) {
       const dy = target.y - proj.y
       const dist = Math.sqrt(dx * dx + dy * dy)
       if (dist < 10) {
-        target.health -= proj.damage
-        if (target.health <= 0) {
-          game.money += target.reward
+        if (proj.splashRadius) {
+          for (const enemy of game.enemies) {
+            const edx = enemy.x - target.x
+            const edy = enemy.y - target.y
+            const edist = Math.sqrt(edx * edx + edy * edy)
+            if (edist <= proj.splashRadius) {
+              enemy.health -= proj.damage
+              if (enemy.health <= 0) {
+                game.money += enemy.reward
+              }
+            }
+          }
+        } else {
+          target.health -= proj.damage
+          if (target.health <= 0) {
+            game.money += target.reward
+          }
         }
         proj.x = -100
       } else {
