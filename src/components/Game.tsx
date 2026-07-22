@@ -206,7 +206,7 @@ function Game() {
   return (
     <div className="flex flex-col items-center gap-4">
       <HUD money={money} lives={lives} wave={wave} />
-      <TowerSelector selected={selectedTower} onSelect={setSelectedTower} difficulty={difficulty} />
+      <TowerSelector selected={selectedTower} onSelect={setSelectedTower} difficulty={difficulty} money={money} />
 
       {!waveStarted && !gameOver && wave === 1 && (
         <div className="flex items-center gap-2">
