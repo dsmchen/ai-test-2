@@ -172,8 +172,8 @@ function Game() {
           e.preventDefault()
           togglePause()
           break
-        case 'f':
-        case 'F':
+        case '>':
+        case '.':
           cycleSpeed()
           break
         case '1':
@@ -375,7 +375,7 @@ function Game() {
           </button>
           <button
             onClick={cycleSpeed}
-            className={`px-3 py-1 rounded text-sm text-white ${gameSpeed > 1 ? 'bg-blue-700 hover:bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+            className={`px-3 py-1 rounded text-sm text-white ${gameSpeed > 1 ? 'bg-gray-500 hover:bg-gray-400' : 'bg-gray-700 hover:bg-gray-600'}`}
           >
             {gameSpeed}x
           </button>
