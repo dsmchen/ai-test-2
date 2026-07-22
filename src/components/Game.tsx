@@ -223,7 +223,7 @@ function Game() {
       : 'cursor-crosshair'
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="relative flex flex-col items-center gap-4">
       <HUD money={money} lives={lives} wave={wave} />
       <TowerSelector selected={selectedTower} onSelect={setSelectedTower} difficulty={difficulty} money={money} />
 
@@ -285,7 +285,7 @@ function Game() {
 
       {toast && (
         <div
-          className={`px-4 py-2 rounded text-sm text-white transition-opacity ${
+          className={`absolute left-1/2 -translate-x-1/2 mt-2 px-4 py-2 rounded text-sm text-white z-10 animate-slide-up ${
             toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'
           }`}
         >
