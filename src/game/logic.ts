@@ -1,5 +1,17 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION } from './constants'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE } from './constants'
+
+function distanceToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
+  const dx = bx - ax
+  const dy = by - ay
+  const lenSq = dx * dx + dy * dy
+  if (lenSq === 0) return Math.sqrt((px - ax) * (px - ax) + (py - ay) * (py - ay))
+  let t = ((px - ax) * dx + (py - ay) * dy) / lenSq
+  t = Math.max(0, Math.min(1, t))
+  const closestX = ax + t * dx
+  const closestY = ay + t * dy
+  return Math.sqrt((px - closestX) * (px - closestX) + (py - closestY) * (py - closestY))
+}
 
 export function getTowerStats(tower: Tower) {
   const base = TOWER_STATS[tower.type]
@@ -64,6 +76,11 @@ export function placeTower(game: GameState, x: number, y: number, type: Tower['t
     return Math.sqrt(dx * dx + dy * dy) < CELL_SIZE
   })
   if (tooClose) return false
+
+  for (let i = 0; i < PATH.length - 1; i++) {
+    const dist = distanceToSegment(x, y, PATH[i].x, PATH[i].y, PATH[i + 1].x, PATH[i + 1].y)
+    if (dist < PATH_CLEARANCE) return false
+  }
 
   game.towers.push({
     id: Date.now(),
