@@ -44,6 +44,7 @@ function Game() {
   const [placementValid, setPlacementValid] = useState<'money' | 'tower' | 'path' | null>(null)
   const [toast, setToast] = useState<Toast | null>(null)
   const [gameSpeed, setGameSpeed] = useState(1)
+  const [isPaused, setIsPaused] = useState(false)
   const toastTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
   const hoverPosRef = useRef<{ x: number; y: number } | null>(null)
   const placementValidRef = useRef<'money' | 'tower' | 'path' | null>(null)
@@ -121,27 +122,28 @@ function Game() {
     placementValidRef.current = null
   }
 
-  const handleUpgrade = () => {
+  const handleUpgrade = useCallback(() => {
     if (!selectedPlacedTower) return
     const game = gameRef.current
     if (upgradeTower(game, selectedPlacedTower.id)) {
       setMoney(game.money)
       setSelectedPlacedTower({ ...selectedPlacedTower, level: selectedPlacedTower.level + 1 })
     }
-  }
+  }, [selectedPlacedTower])
 
-  const handleSell = () => {
+  const handleSell = useCallback(() => {
     if (!selectedPlacedTower) return
     const game = gameRef.current
     if (sellTower(game, selectedPlacedTower.id)) {
       setMoney(game.money)
       setSelectedPlacedTower(null)
     }
-  }
+  }, [selectedPlacedTower])
 
   const togglePause = useCallback(() => {
     const game = gameRef.current
     game.paused = !game.paused
+    setIsPaused(game.paused)
   }, [])
 
   const cycleSpeed = useCallback(() => {
@@ -187,7 +189,7 @@ function Game() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [gameOver, togglePause, cycleSpeed])
+  }, [gameOver, togglePause, cycleSpeed, handleUpgrade, handleSell])
 
   const resetGame = () => {
     gameRef.current = createInitialState()
@@ -335,7 +337,7 @@ function Game() {
             onClick={togglePause}
             className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm"
           >
-            {gameRef.current.paused ? '▶ Resume' : '⏸ Pause'}
+            {isPaused ? '▶ Resume' : '⏸ Pause'}
           </button>
           <button
             onClick={cycleSpeed}
