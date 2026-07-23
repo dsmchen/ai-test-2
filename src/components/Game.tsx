@@ -13,6 +13,7 @@ import {
 import { useGameLoop } from '../hooks/useGameLoop'
 import HUD from './HUD'
 import TowerSelector from './TowerSelector'
+import GameSetup from './GameSetup'
 
 interface Toast {
   message: string
@@ -272,43 +273,11 @@ function Game() {
 
   if (phase === 'setup') {
     return (
-      <div className="flex flex-col items-center gap-8 py-12">
-        <div className="flex flex-col items-center gap-4">
-          <span className="text-gray-300">Select Difficulty</span>
-          <div className="flex items-center gap-3">
-            {([
-              { key: 'easy' as Difficulty, color: '#15803D', label: 'Easy', desc: '0.7x stats' },
-              { key: 'medium' as Difficulty, color: '#A16207', label: 'Medium', desc: '1x stats' },
-              { key: 'hard' as Difficulty, color: '#B91C1C', label: 'Hard', desc: '1.5x stats' },
-            ]).map(({ key, color, label, desc }) => (
-              <button
-                key={key}
-                onClick={() => setDifficulty(key)}
-                aria-pressed={difficulty === key}
-                style={{
-                  backgroundColor: difficulty === key ? color : '#374151',
-                  color: '#fff',
-                }}
-                className="px-6 py-3 rounded-lg capitalize hover:opacity-80 flex flex-col items-center min-w-[100px]"
-              >
-                <span className="font-semibold">{label}</span>
-                <span className="text-xs opacity-75">{desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div
-          className="p-[2px] rounded-[5px]"
-          style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
-        >
-          <button
-            onClick={startGame}
-            className="px-8 py-3 bg-gray-800 text-white hover:bg-gray-700 rounded-[5px] text-lg font-semibold"
-          >
-            Start Game
-          </button>
-        </div>
-      </div>
+      <GameSetup
+        difficulty={difficulty}
+        onSelectDifficulty={setDifficulty}
+        onStartGame={startGame}
+      />
     )
   }
 
