@@ -46,7 +46,6 @@ export interface GameState {
   lastSpawn: number
   enemiesSpawned: number
   waveStarted: boolean
-  animationId: number
   lastTimestamp: number
   deltaTime: number
   gameSpeed: number
