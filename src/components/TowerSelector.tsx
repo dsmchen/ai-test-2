@@ -1,5 +1,5 @@
 import { TowerType } from '../game/types'
-import { TOWER_STATS } from '../game/constants'
+import { TOWER_STATS, TOWER_EMOJI, TOWER_DESCRIPTIONS } from '../game/constants'
 
 interface TowerSelectorProps {
   selected: TowerType
@@ -8,13 +8,6 @@ interface TowerSelectorProps {
 }
 
 const TOWER_TYPES: TowerType[] = ['basic', 'sniper', 'splash', 'slow']
-
-const TOWER_EMOJI: Record<TowerType, string> = {
-  basic: '🎯',
-  sniper: '🔭',
-  splash: '💥',
-  slow: '🐌',
-}
 
 function TowerSelector({ selected, onSelect, money }: TowerSelectorProps) {
   return (
@@ -27,6 +20,7 @@ function TowerSelector({ selected, onSelect, money }: TowerSelectorProps) {
             onClick={() => canAfford && onSelect(t)}
             aria-pressed={selected === t}
             disabled={!canAfford}
+            title={TOWER_DESCRIPTIONS[t]}
             className={`px-3 py-1 rounded transition-btn ${
               !canAfford ? 'opacity-40 cursor-not-allowed' : ''
             }`}
