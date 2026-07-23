@@ -366,7 +366,7 @@ function Game() {
       )}
 
       {waveStarted && !gameOver && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-h-[36px]">
           <button
             onClick={togglePause}
             className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm"
@@ -375,7 +375,9 @@ function Game() {
           </button>
           <button
             onClick={cycleSpeed}
-            className={`px-3 py-1 rounded text-sm text-white ${gameSpeed > 1 ? 'bg-gray-500 hover:bg-gray-400' : 'bg-gray-700 hover:bg-gray-600'}`}
+            className={`px-3 py-1 rounded text-sm text-white ${
+              gameSpeed > 1 ? 'bg-gray-500 hover:bg-gray-400' : 'bg-gray-700 hover:bg-gray-600'
+            }`}
           >
             {gameSpeed}x
           </button>
