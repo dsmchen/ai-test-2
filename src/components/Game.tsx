@@ -1,20 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST } from '../game/constants'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES } from '../game/constants'
 import {
   createInitialState,
   placeTower,
   canPlaceTower,
   upgradeTower,
   sellTower,
-  getTowerStats,
-  getSellValue,
 } from '../game/logic'
 import { useGameLoop } from '../hooks/useGameLoop'
 import HUD from './HUD'
 import TowerSelector from './TowerSelector'
 import GameSetup from './GameSetup'
 import GameControls from './GameControls'
+import TowerInfo from './TowerInfo'
 
 interface Toast {
   message: string
@@ -256,14 +255,6 @@ function Game() {
     selectedPlacedTowerId: selectedPlacedTower?.id ?? null,
   })
 
-  const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
-  const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
-  const upgradedStats = selectedPlacedTower && selectedPlacedTower.level < 3
-    ? getTowerStats({ ...selectedPlacedTower, level: selectedPlacedTower.level + 1 })
-    : null
-
-  const sellValue = selectedPlacedTower ? getSellValue(selectedPlacedTower) : 0
-
   const cursorClass = gameOver
     ? 'cursor-default'
     : hoverPos
@@ -363,33 +354,12 @@ function Game() {
       )}
 
       {selectedPlacedTower && !gameOver && (
-        <div className="flex items-center gap-4 bg-gray-800 px-4 py-2 rounded">
-          <span className="text-white">
-            {selectedPlacedTower.type} Lv{selectedPlacedTower.level}
-          </span>
-          {selectedPlacedTower.level < 3 ? (
-            <button
-              onClick={handleUpgrade}
-              disabled={!canUpgrade}
-              className={`px-3 py-1 rounded ${canUpgrade ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-600 cursor-not-allowed text-white'}`}
-            >
-              Upgrade (${upgradeCost})
-            </button>
-          ) : (
-            <span className="text-gray-300">Max Level</span>
-          )}
-          <button
-            onClick={handleSell}
-            className="px-3 py-1 rounded bg-red-700 hover:bg-red-600 text-white"
-          >
-            Sell (${sellValue})
-          </button>
-          {upgradedStats && (
-            <span className="text-gray-300 text-sm">
-              → Dmg {upgradedStats.damage} | Rng {upgradedStats.range} | Rate {Math.round(upgradedStats.fireRate)}ms
-            </span>
-          )}
-        </div>
+        <TowerInfo
+          tower={selectedPlacedTower}
+          money={money}
+          onUpgrade={handleUpgrade}
+          onSell={handleSell}
+        />
       )}
     </div>
   )
