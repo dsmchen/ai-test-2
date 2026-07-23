@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, ENEMIES_PER_WAVE, SPAWN_INTERVAL, SELL_RATIO, TOWER_STATS } from '../game/constants'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, ENEMIES_PER_WAVE, SPAWN_INTERVAL } from '../game/constants'
 import {
   createInitialState,
   spawnEnemy,
@@ -9,6 +9,7 @@ import {
   upgradeTower,
   sellTower,
   getTowerStats,
+  getSellValue,
   updateEnemies,
   updateTowers,
   updateProjectiles,
@@ -49,8 +50,36 @@ function Game() {
   const toastTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
   const hoverPosRef = useRef<{ x: number; y: number } | null>(null)
   const placementValidRef = useRef<'money' | 'tower' | 'path' | null>(null)
+  const gameOverRef = useRef(gameOver)
+  const waveRef = useRef(wave)
+  const difficultyRef = useRef(difficulty)
+  const selectedTowerRef = useRef(selectedTower)
+  const gameSpeedRef = useRef(gameSpeed)
+  const moneyRef = useRef(money)
+  const livesRef = useRef(lives)
+  const phaseRef = useRef(phase)
+  const animationIdRef = useRef(0)
 
   const gameRef = useRef(createInitialState())
+
+  useEffect(() => { gameOverRef.current = gameOver }, [gameOver])
+  useEffect(() => { waveRef.current = wave }, [wave])
+  useEffect(() => { difficultyRef.current = difficulty }, [difficulty])
+  useEffect(() => { selectedTowerRef.current = selectedTower }, [selectedTower])
+  useEffect(() => { gameSpeedRef.current = gameSpeed }, [gameSpeed])
+  useEffect(() => { moneyRef.current = money }, [money])
+  useEffect(() => { livesRef.current = lives }, [lives])
+  useEffect(() => { phaseRef.current = phase }, [phase])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (phase !== 'playing') return
+    const game = gameRef.current
+    if (game.money !== money) setMoney(game.money)
+    if (game.lives !== lives) setLives(game.lives)
+    if (game.wave !== wave) setWave(game.wave)
+    if (gameOverRef.current !== gameOver) setGameOver(gameOverRef.current)
+  })
 
   const startGame = () => {
     gameRef.current = createInitialState()
@@ -219,6 +248,8 @@ function Game() {
   }
 
   useEffect(() => {
+    if (phaseRef.current !== 'playing') return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -232,7 +263,7 @@ function Game() {
 
     let cancelled = false
 
-    render(ctx, gameRef.current, null, selectedTower, null, null)
+    render(ctx, gameRef.current, null, selectedTowerRef.current, null, null)
 
     const gameLoop = (timestamp: number) => {
       if (cancelled) return
@@ -242,11 +273,11 @@ function Game() {
         game.deltaTime = Math.min(timestamp - game.lastTimestamp, 50)
       }
       game.lastTimestamp = timestamp
-      game.gameSpeed = gameSpeed
+      game.gameSpeed = gameSpeedRef.current
 
-      if (!gameOver && !game.paused) {
-        if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL / gameSpeed) {
-          spawnEnemy(game, difficulty)
+      if (!gameOverRef.current && !game.paused) {
+        if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL / gameSpeedRef.current) {
+          spawnEnemy(game, difficultyRef.current)
           game.lastSpawn = timestamp
         }
 
@@ -255,31 +286,29 @@ function Game() {
         updateProjectiles(game)
 
         if (checkWaveComplete(game)) {
-          setGameOver('won')
-        } else if (game.wave !== wave) {
-          setWave(game.wave)
-          setWaveStarted(false)
+          gameOverRef.current = 'won'
+        } else if (game.wave !== waveRef.current) {
+          waveRef.current = game.wave
+          game.waveStarted = false
         }
 
         if (checkGameOver(game)) {
-          setGameOver('lost')
+          gameOverRef.current = 'lost'
         }
-
-        if (game.money !== money) setMoney(game.money)
-        if (game.lives !== lives) setLives(game.lives)
       }
 
-      render(ctx, game, hoverPosRef.current, selectedTower, placementValidRef.current, selectedPlacedTower?.id ?? null)
-      game.animationId = requestAnimationFrame(gameLoop)
+      render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTower?.id ?? null)
+      animationIdRef.current = requestAnimationFrame(gameLoop)
     }
 
-    gameRef.current.animationId = requestAnimationFrame(gameLoop)
+    animationIdRef.current = requestAnimationFrame(gameLoop)
 
     return () => {
       cancelled = true
-      cancelAnimationFrame(gameRef.current.animationId)
+      cancelAnimationFrame(animationIdRef.current)
     }
-  }, [gameOver, wave, difficulty, selectedTower, gameSpeed, money, lives, phase]) // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase])
 
   const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
   const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
@@ -287,14 +316,7 @@ function Game() {
     ? getTowerStats({ ...selectedPlacedTower, level: selectedPlacedTower.level + 1 })
     : null
 
-  const sellValue = selectedPlacedTower ? (() => {
-    const baseCost = TOWER_STATS[selectedPlacedTower.type].cost
-    let totalUpgradeCost = 0
-    for (let i = 1; i < selectedPlacedTower.level; i++) {
-      totalUpgradeCost += UPGRADE_COST[i]
-    }
-    return Math.round((baseCost + totalUpgradeCost) * SELL_RATIO)
-  })() : 0
+  const sellValue = selectedPlacedTower ? getSellValue(selectedPlacedTower) : 0
 
   const cursorClass = gameOver
     ? 'cursor-default'
@@ -348,6 +370,12 @@ function Game() {
 
   return (
     <div className="relative flex flex-col items-center gap-4">
+      <div className="sr-only" role="status" aria-live="polite">
+        {gameOver === 'won' && 'You won the game!'}
+        {gameOver === 'lost' && 'Game over. You lost.'}
+        {!gameOver && waveStarted && `Wave ${wave} in progress`}
+        {!gameOver && !waveStarted && `Ready to start wave ${wave}`}
+      </div>
       <HUD money={money} lives={lives} wave={wave} />
       {!gameOver && (
         <TowerSelector selected={selectedTower} onSelect={setSelectedTower} money={money} />
