@@ -1,22 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Tower, TowerType, Difficulty } from '../game/types'
-import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, ENEMIES_PER_WAVE, SPAWN_INTERVAL } from '../game/constants'
+import { CELL_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST } from '../game/constants'
 import {
   createInitialState,
-  spawnEnemy,
   placeTower,
   canPlaceTower,
   upgradeTower,
   sellTower,
   getTowerStats,
   getSellValue,
-  updateEnemies,
-  updateTowers,
-  updateProjectiles,
-  checkWaveComplete,
-  checkGameOver,
 } from '../game/logic'
-import { render } from '../game/renderer'
+import { useGameLoop } from '../hooks/useGameLoop'
 import HUD from './HUD'
 import TowerSelector from './TowerSelector'
 
@@ -58,7 +52,6 @@ function Game() {
   const moneyRef = useRef(money)
   const livesRef = useRef(lives)
   const phaseRef = useRef(phase)
-  const animationIdRef = useRef(0)
 
   const gameRef = useRef(createInitialState())
 
@@ -247,68 +240,19 @@ function Game() {
     setPhase('setup')
   }
 
-  useEffect(() => {
-    if (phaseRef.current !== 'playing') return
-
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = CANVAS_WIDTH * dpr
-    canvas.height = CANVAS_HEIGHT * dpr
-    ctx.scale(dpr, dpr)
-
-    let cancelled = false
-
-    render(ctx, gameRef.current, null, selectedTowerRef.current, null, null)
-
-    const gameLoop = (timestamp: number) => {
-      if (cancelled) return
-      const game = gameRef.current
-
-      if (game.lastTimestamp > 0) {
-        game.deltaTime = Math.min(timestamp - game.lastTimestamp, 50)
-      }
-      game.lastTimestamp = timestamp
-      game.gameSpeed = gameSpeedRef.current
-
-      if (!gameOverRef.current && !game.paused) {
-        if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL / gameSpeedRef.current) {
-          spawnEnemy(game, difficultyRef.current)
-          game.lastSpawn = timestamp
-        }
-
-        updateEnemies(game, timestamp)
-        updateTowers(game, timestamp)
-        updateProjectiles(game)
-
-        if (checkWaveComplete(game)) {
-          gameOverRef.current = 'won'
-        } else if (game.wave !== waveRef.current) {
-          waveRef.current = game.wave
-          game.waveStarted = false
-        }
-
-        if (checkGameOver(game)) {
-          gameOverRef.current = 'lost'
-        }
-      }
-
-      render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTower?.id ?? null)
-      animationIdRef.current = requestAnimationFrame(gameLoop)
-    }
-
-    animationIdRef.current = requestAnimationFrame(gameLoop)
-
-    return () => {
-      cancelled = true
-      cancelAnimationFrame(animationIdRef.current)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase])
+  useGameLoop({
+    canvasRef,
+    gameRef,
+    phase,
+    gameOverRef,
+    waveRef,
+    difficultyRef,
+    gameSpeedRef,
+    selectedTowerRef,
+    hoverPosRef,
+    placementValidRef,
+    selectedPlacedTowerId: selectedPlacedTower?.id ?? null,
+  })
 
   const upgradeCost = selectedPlacedTower ? UPGRADE_COST[selectedPlacedTower.level] : 0
   const canUpgrade = selectedPlacedTower && selectedPlacedTower.level < 3 && money >= upgradeCost
