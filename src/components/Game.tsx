@@ -54,6 +54,7 @@ function Game() {
   const moneyRef = useRef(money)
   const livesRef = useRef(lives)
   const phaseRef = useRef(phase)
+  const selectedPlacedTowerIdRef = useRef<number | null>(null)
 
   const gameRef = useRef(createInitialState())
 
@@ -65,6 +66,7 @@ function Game() {
   useEffect(() => { moneyRef.current = money }, [money])
   useEffect(() => { livesRef.current = lives }, [lives])
   useEffect(() => { phaseRef.current = phase }, [phase])
+  useEffect(() => { selectedPlacedTowerIdRef.current = selectedPlacedTower?.id ?? null }, [selectedPlacedTower])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -74,6 +76,7 @@ function Game() {
     if (game.lives !== lives) setLives(game.lives)
     if (game.wave !== wave) setWave(game.wave)
     if (gameOverRef.current !== gameOver) setGameOver(gameOverRef.current)
+    if (!game.waveStarted && waveStarted) setWaveStarted(false)
   })
 
   const startGame = () => {
@@ -253,7 +256,7 @@ function Game() {
     selectedTowerRef,
     hoverPosRef,
     placementValidRef,
-    selectedPlacedTowerId: selectedPlacedTower?.id ?? null,
+    selectedPlacedTowerIdRef,
   })
 
   const cursorClass = gameOver

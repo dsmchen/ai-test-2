@@ -23,7 +23,7 @@ interface UseGameLoopOptions {
   selectedTowerRef: MutableRefObject<TowerType>
   hoverPosRef: MutableRefObject<{ x: number; y: number } | null>
   placementValidRef: MutableRefObject<'money' | 'tower' | 'path' | null>
-  selectedPlacedTowerId: number | null
+  selectedPlacedTowerIdRef: MutableRefObject<number | null>
 }
 
 export function useGameLoop({
@@ -37,7 +37,7 @@ export function useGameLoop({
   selectedTowerRef,
   hoverPosRef,
   placementValidRef,
-  selectedPlacedTowerId,
+  selectedPlacedTowerIdRef,
 }: UseGameLoopOptions) {
   const animationIdRef = useRef(0)
 
@@ -91,7 +91,7 @@ export function useGameLoop({
         }
       }
 
-      render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTowerId)
+      render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTowerIdRef.current)
       animationIdRef.current = requestAnimationFrame(gameLoop)
     }
 
