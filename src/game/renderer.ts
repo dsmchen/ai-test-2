@@ -1,18 +1,12 @@
 import { GameState, TowerType } from './types'
-import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, PATH, TOWER_STATS } from './constants'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, PATH, TOWER_STATS, TOWER_EMOJI, ENEMY_SIZES, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT, HEALTH_BAR_OFFSET_Y, PROJECTILE_RADIUS } from './constants'
+import { getTowerStats } from './logic'
 
 const ENEMY_COLORS: Record<string, string> = {
   normal: '#e5e7eb',
   fast: '#9ca3af',
   tank: '#4b5563',
   boss: '#fbbf24',
-}
-
-const TOWER_EMOJI: Record<string, string> = {
-  basic: '🎯',
-  sniper: '🔭',
-  splash: '💥',
-  slow: '🐌',
 }
 
 const PROJECTILE_COLORS: Record<string, string> = {
@@ -83,39 +77,40 @@ export function render(
 
   for (const enemy of game.enemies) {
     ctx.fillStyle = ENEMY_COLORS[enemy.type] || '#e5e7eb'
+    const size = ENEMY_SIZES[enemy.type]
     if (enemy.type === 'boss') {
       ctx.beginPath()
       for (let i = 0; i < 5; i++) {
         const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2
-        const px = enemy.x + 18 * Math.cos(angle)
-        const py = enemy.y + 18 * Math.sin(angle)
+        const px = enemy.x + size * Math.cos(angle)
+        const py = enemy.y + size * Math.sin(angle)
         if (i === 0) ctx.moveTo(px, py)
         else ctx.lineTo(px, py)
       }
       ctx.closePath()
       ctx.fill()
     } else if (enemy.type === 'tank') {
-      ctx.fillRect(enemy.x - 12, enemy.y - 12, 24, 24)
+      ctx.fillRect(enemy.x - size, enemy.y - size, size * 2, size * 2)
     } else if (enemy.type === 'fast') {
       ctx.beginPath()
-      ctx.moveTo(enemy.x, enemy.y - 14)
-      ctx.lineTo(enemy.x + 14, enemy.y + 10)
-      ctx.lineTo(enemy.x - 14, enemy.y + 10)
+      ctx.moveTo(enemy.x, enemy.y - size)
+      ctx.lineTo(enemy.x + size, enemy.y + size * 0.7)
+      ctx.lineTo(enemy.x - size, enemy.y + size * 0.7)
       ctx.closePath()
       ctx.fill()
     } else {
       ctx.beginPath()
-      ctx.arc(enemy.x, enemy.y, 12, 0, Math.PI * 2)
+      ctx.arc(enemy.x, enemy.y, size, 0, Math.PI * 2)
       ctx.fill()
     }
     ctx.fillStyle = '#44ff44'
-    ctx.fillRect(enemy.x - 15, enemy.y - 20, 30 * (enemy.health / enemy.maxHealth), 4)
+    ctx.fillRect(enemy.x - HEALTH_BAR_WIDTH / 2, enemy.y - HEALTH_BAR_OFFSET_Y, HEALTH_BAR_WIDTH * (enemy.health / enemy.maxHealth), HEALTH_BAR_HEIGHT)
   }
 
   for (const proj of game.projectiles) {
     ctx.fillStyle = PROJECTILE_COLORS[proj.towerType] || '#ffff00'
     ctx.beginPath()
-    ctx.arc(proj.x, proj.y, 3, 0, Math.PI * 2)
+    ctx.arc(proj.x, proj.y, PROJECTILE_RADIUS, 0, Math.PI * 2)
     ctx.fill()
   }
 
@@ -126,6 +121,19 @@ export function render(
     ctx.globalAlpha = 0.4
     ctx.fillStyle = canPlace ? '#22c55e' : '#ef4444'
     ctx.fillRect(hoverPos.x - CELL_SIZE / 3, hoverPos.y - CELL_SIZE / 3, CELL_SIZE / 1.5, CELL_SIZE / 1.5)
+    if (!canPlace) {
+      ctx.strokeStyle = '#fff'
+      ctx.lineWidth = 2
+      ctx.globalAlpha = 0.6
+      const s = CELL_SIZE / 3
+      ctx.beginPath()
+      ctx.moveTo(hoverPos.x - s, hoverPos.y - s)
+      ctx.lineTo(hoverPos.x + s, hoverPos.y + s)
+      ctx.moveTo(hoverPos.x + s, hoverPos.y - s)
+      ctx.lineTo(hoverPos.x - s, hoverPos.y + s)
+      ctx.stroke()
+    }
+    ctx.globalAlpha = 0.4
     ctx.font = `${CELL_SIZE / 2}px sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -145,7 +153,7 @@ export function render(
   if (selectedTowerId) {
     const tower = game.towers.find(t => t.id === selectedTowerId)
     if (tower) {
-      const stats = TOWER_STATS[tower.type]
+      const stats = getTowerStats(tower)
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
       ctx.lineWidth = 1.5
       ctx.setLineDash([5, 5])
