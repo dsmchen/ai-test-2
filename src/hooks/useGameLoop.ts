@@ -10,7 +10,7 @@ import {
   checkGameOver,
 } from '../game/logic'
 import { render } from '../game/renderer'
-import { MutableRefObject } from 'react'
+import { MutableRefObject, Dispatch, SetStateAction } from 'react'
 
 interface UseGameLoopOptions {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>
@@ -24,6 +24,13 @@ interface UseGameLoopOptions {
   hoverPosRef: MutableRefObject<{ x: number; y: number } | null>
   placementValidRef: MutableRefObject<'money' | 'tower' | 'path' | null>
   selectedPlacedTowerIdRef: MutableRefObject<number | null>
+  moneyRef: MutableRefObject<number>
+  livesRef: MutableRefObject<number>
+  setMoney: Dispatch<SetStateAction<number>>
+  setLives: Dispatch<SetStateAction<number>>
+  setWave: Dispatch<SetStateAction<number>>
+  setGameOver: Dispatch<SetStateAction<'won' | 'lost' | null>>
+  setWaveStarted: Dispatch<SetStateAction<boolean>>
 }
 
 export function useGameLoop({
@@ -38,6 +45,13 @@ export function useGameLoop({
   hoverPosRef,
   placementValidRef,
   selectedPlacedTowerIdRef,
+  moneyRef,
+  livesRef,
+  setMoney,
+  setLives,
+  setWave,
+  setGameOver,
+  setWaveStarted,
 }: UseGameLoopOptions) {
   const animationIdRef = useRef(0)
 
@@ -81,13 +95,26 @@ export function useGameLoop({
 
         if (checkWaveComplete(game)) {
           gameOverRef.current = 'won'
+          setGameOver('won')
         } else if (game.wave !== waveRef.current) {
           waveRef.current = game.wave
           game.waveStarted = false
+          setWave(game.wave)
+          setWaveStarted(false)
         }
 
         if (checkGameOver(game)) {
           gameOverRef.current = 'lost'
+          setGameOver('lost')
+        }
+
+        if (game.money !== moneyRef.current) {
+          moneyRef.current = game.money
+          setMoney(game.money)
+        }
+        if (game.lives !== livesRef.current) {
+          livesRef.current = game.lives
+          setLives(game.lives)
         }
       }
 
