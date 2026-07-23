@@ -47,8 +47,35 @@ export const SLOW_DURATION = 2500
 export const PATH_CLEARANCE = 30
 export const SELL_RATIO = 0.5
 
+export const ENEMY_SIZES: Record<EnemyType, number> = {
+  normal: 12,
+  fast: 14,
+  tank: 12,
+  boss: 18,
+}
+
+export const HEALTH_BAR_WIDTH = 30
+export const HEALTH_BAR_HEIGHT = 4
+export const HEALTH_BAR_OFFSET_Y = 20
+export const PROJECTILE_RADIUS = 3
+export const PROJECTILE_HIT_DIST = 10
+
 export const DIFFICULTY_COLOR: Record<Difficulty, string> = {
   easy: '#15803D',
   medium: '#A16207',
   hard: '#B91C1C',
+}
+
+export const TOWER_EMOJI: Record<TowerType, string> = {
+  basic: '🎯',
+  sniper: '🔭',
+  splash: '💥',
+  slow: '🐌',
+}
+
+export const TOWER_DESCRIPTIONS: Record<TowerType, string> = {
+  basic: 'Balanced damage and range',
+  sniper: 'High damage, long range, slow fire rate',
+  splash: 'Area damage, medium range',
+  slow: 'Reduces enemy movement speed',
 }
