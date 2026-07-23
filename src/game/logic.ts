@@ -1,5 +1,10 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO } from './constants'
+import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, PROJECTILE_HIT_DIST } from './constants'
+
+let nextId = 1
+function generateId(): number {
+  return nextId++
+}
 
 function distanceToSegment(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
   const dx = bx - ax
@@ -35,7 +40,6 @@ export function createInitialState(): GameState {
     lastSpawn: 0,
     enemiesSpawned: 0,
     waveStarted: false,
-    animationId: 0,
     lastTimestamp: 0,
     deltaTime: 0,
     gameSpeed: 1,
@@ -55,7 +59,7 @@ export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
   const mult = DIFFICULTY_MULTIPLIER[difficulty]
 
   game.enemies.push({
-    id: Date.now() + Math.random(),
+    id: generateId(),
     type,
     x: PATH[0].x,
     y: PATH[0].y,
@@ -93,7 +97,7 @@ export function placeTower(game: GameState, x: number, y: number, type: Tower['t
 
   const stats = TOWER_STATS[type]
   game.towers.push({
-    id: Date.now(),
+    id: generateId(),
     type,
     x,
     y,
@@ -121,15 +125,19 @@ export function sellTower(game: GameState, towerId: number): boolean {
   if (towerIndex === -1) return false
 
   const tower = game.towers[towerIndex]
+  const refund = getSellValue(tower)
+  game.money += refund
+  game.towers.splice(towerIndex, 1)
+  return true
+}
+
+export function getSellValue(tower: Tower): number {
   const baseCost = TOWER_STATS[tower.type].cost
   let totalUpgradeCost = 0
   for (let i = 1; i < tower.level; i++) {
     totalUpgradeCost += UPGRADE_COST[i]
   }
-  const refund = Math.round((baseCost + totalUpgradeCost) * SELL_RATIO)
-  game.money += refund
-  game.towers.splice(towerIndex, 1)
-  return true
+  return Math.round((baseCost + totalUpgradeCost) * SELL_RATIO)
 }
 
 export function updateEnemies(game: GameState, timestamp: number) {
@@ -159,14 +167,14 @@ export function updateEnemies(game: GameState, timestamp: number) {
 export function updateTowers(game: GameState, timestamp: number) {
   for (const tower of game.towers) {
     const stats = getTowerStats(tower)
-    if (timestamp - tower.lastFired > stats.fireRate) {
+    if (timestamp - tower.lastFired > stats.fireRate / game.gameSpeed) {
       for (const enemy of game.enemies) {
         const dx = enemy.x - tower.x
         const dy = enemy.y - tower.y
         const dist = Math.sqrt(dx * dx + dy * dy)
         if (dist <= stats.range) {
           game.projectiles.push({
-            id: Date.now() + Math.random(),
+            id: generateId(),
             x: tower.x,
             y: tower.y,
             targetId: enemy.id,
@@ -192,7 +200,7 @@ export function updateProjectiles(game: GameState) {
       const dx = target.x - proj.x
       const dy = target.y - proj.y
       const dist = Math.sqrt(dx * dx + dy * dy)
-      if (dist < 10) {
+      if (dist < PROJECTILE_HIT_DIST) {
         if (proj.splashRadius) {
           for (const enemy of game.enemies) {
             const edx = enemy.x - target.x
