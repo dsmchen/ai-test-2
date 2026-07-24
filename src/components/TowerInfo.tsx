@@ -26,6 +26,7 @@ function TowerInfo({ tower, money, onUpgrade, onSell }: TowerInfoProps) {
         <button
           onClick={onUpgrade}
           disabled={!canUpgrade}
+          title={!canUpgrade ? (tower.level >= 3 ? 'Max level' : 'Not enough money') : undefined}
           className={`px-3 py-1 rounded ${canUpgrade ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-600 cursor-not-allowed text-white'}`}
         >
           Upgrade (${upgradeCost})

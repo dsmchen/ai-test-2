@@ -64,10 +64,8 @@ export function useGameLoop({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = CANVAS_WIDTH * dpr
-    canvas.height = CANVAS_HEIGHT * dpr
-    ctx.scale(dpr, dpr)
+    canvas.width = CANVAS_WIDTH
+    canvas.height = CANVAS_HEIGHT
 
     let cancelled = false
 
@@ -118,7 +116,9 @@ export function useGameLoop({
         }
       }
 
-      render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTowerIdRef.current)
+      if (!game.paused) {
+        render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTowerIdRef.current)
+      }
       animationIdRef.current = requestAnimationFrame(gameLoop)
     }
 

@@ -215,10 +215,14 @@ function Game() {
         case 'S':
           handleSell()
           break
+        case 'Enter':
+          if (!waveStarted) startWave()
+          break
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameOver, togglePause, cycleSpeed, handleUpgrade, handleSell])
 
   const resetGame = () => {

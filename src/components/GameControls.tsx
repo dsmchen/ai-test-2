@@ -31,6 +31,7 @@ function GameControls({ isPaused, onTogglePause, gameSpeed, onCycleSpeed }: Game
         </button>
         <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block group-focus-within:block bg-gray-800 text-gray-300 text-xs rounded px-3 py-2 whitespace-nowrap z-20 border border-gray-600">
           <kbd className="bg-gray-600 px-1 py-0.5 rounded text-[10px]">Space</kbd> pause/resume<br/>
+          <kbd className="bg-gray-600 px-1 py-0.5 rounded text-[10px]">Enter</kbd> start wave<br/>
           <kbd className="bg-gray-600 px-1 py-0.5 rounded text-[10px]">&gt;</kbd> cycle speed<br/>
           <kbd className="bg-gray-600 px-1 py-0.5 rounded text-[10px]">1-4</kbd> select tower<br/>
           <kbd className="bg-gray-600 px-1 py-0.5 rounded text-[10px]">Esc</kbd> deselect<br/>
