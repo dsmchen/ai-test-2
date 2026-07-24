@@ -114,6 +114,27 @@ describe('spawnEnemy', () => {
     expect(game.enemies[0].type).toBe('boss')
   })
 
+  it('spawns boss on wave 10 as last enemy', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    const game = makeGame({ waveStarted: true, wave: 10, enemiesSpawned: getEnemiesPerWave(10) - 1 })
+    spawnEnemy(game)
+    expect(game.enemies[0].type).toBe('boss')
+  })
+
+  it('spawns 2 bosses on wave 11 as last 2 enemies', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    const game = makeGame({ waveStarted: true, wave: 11, enemiesSpawned: getEnemiesPerWave(11) - 2 })
+    spawnEnemy(game)
+    expect(game.enemies[0].type).toBe('boss')
+  })
+
+  it('does not spawn boss on wave 9', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9)
+    const game = makeGame({ waveStarted: true, wave: 9, enemiesSpawned: getEnemiesPerWave(9) - 1 })
+    spawnEnemy(game)
+    expect(game.enemies[0].type).not.toBe('boss')
+  })
+
   it('does not spawn boss on wave 1', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.9)
     const game = makeGame({ waveStarted: true, wave: 1, enemiesSpawned: getEnemiesPerWave(1) - 1 })

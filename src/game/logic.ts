@@ -52,7 +52,10 @@ export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
   if (!game.waveStarted || game.enemiesSpawned >= enemiesPerWave) return
 
   const types: EnemyType[] = ['normal', 'fast', 'tank']
-  if (game.wave === TOTAL_WAVES && game.enemiesSpawned === enemiesPerWave - 1) {
+  const bossCount = game.wave >= TOTAL_WAVES - 2 ? game.wave - (TOTAL_WAVES - 3) : 0
+  const isBossSlot = game.enemiesSpawned >= enemiesPerWave - bossCount
+  if (isBossSlot) {
+    types.length = 0
     types.push('boss')
   }
   const type = types[Math.floor(Math.random() * types.length)]
