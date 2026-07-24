@@ -312,10 +312,7 @@ function Game() {
         />
       )}
 
-      <div
-        className="relative p-[3px] rounded-[5px]"
-        style={{ background: 'linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #9400D3)' }}
-      >
+      <div className="relative rounded-[5px] border border-gray-600">
         <canvas
           ref={canvasRef}
           style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, backgroundColor: '#1a1a2e' }}
