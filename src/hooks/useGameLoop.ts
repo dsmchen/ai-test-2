@@ -120,9 +120,7 @@ export function useGameLoop({
         }
       }
 
-      if (!game.paused) {
-        render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTowerIdRef.current)
-      }
+      render(ctx, game, hoverPosRef.current, selectedTowerRef.current, placementValidRef.current, selectedPlacedTowerIdRef.current)
       animationIdRef.current = requestAnimationFrame(gameLoop)
     }
 
