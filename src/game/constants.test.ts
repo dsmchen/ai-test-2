@@ -16,6 +16,7 @@ import {
   getEnemiesPerWave,
   getSpawnInterval,
   getWaveHealthMultiplier,
+  getBossHealthMultiplier,
 } from './constants'
 
 describe('constants', () => {
@@ -86,9 +87,12 @@ describe('constants', () => {
     expect(getEnemiesPerWave(10)).toBe(15)
     expect(getSpawnInterval(1)).toBe(1500)
     expect(getSpawnInterval(6)).toBe(1300)
-    expect(getSpawnInterval(10)).toBe(1100)
+    expect(getSpawnInterval(10)).toBe(900)
     expect(getWaveHealthMultiplier(1)).toBe(1)
-    expect(getWaveHealthMultiplier(12)).toBeCloseTo(2.65)
+    expect(getWaveHealthMultiplier(12)).toBeCloseTo(3.75)
+    expect(getBossHealthMultiplier(9)).toBe(1)
+    expect(getBossHealthMultiplier(10)).toBe(1.5)
+    expect(getBossHealthMultiplier(12)).toBe(1.5)
   })
 
   it('upgrade costs have 3 entries', () => {

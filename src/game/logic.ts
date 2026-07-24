@@ -1,5 +1,5 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, PROJECTILE_HIT_DIST, getEnemiesPerWave, getWaveHealthMultiplier } from './constants'
+import { PATH, ENEMY_STATS, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, PROJECTILE_HIT_DIST, getEnemiesPerWave, getWaveHealthMultiplier, getWaveSpeedMultiplier, getBossHealthMultiplier } from './constants'
 
 let nextId = 1
 function generateId(): number {
@@ -61,16 +61,18 @@ export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
   const type = types[Math.floor(Math.random() * types.length)]
   const stats = ENEMY_STATS[type]
   const diffMult = DIFFICULTY_MULTIPLIER[difficulty]
-  const waveMult = getWaveHealthMultiplier(game.wave)
+  const waveHealthMult = getWaveHealthMultiplier(game.wave)
+  const waveSpeedMult = getWaveSpeedMultiplier(game.wave)
+  const bossHealthMult = type === 'boss' ? getBossHealthMultiplier(game.wave) : 1
 
   game.enemies.push({
     id: generateId(),
     type,
     x: PATH[0].x,
     y: PATH[0].y,
-    health: Math.round(stats.health * diffMult * waveMult),
-    maxHealth: Math.round(stats.health * diffMult * waveMult),
-    speed: stats.speed * diffMult,
+    health: Math.round(stats.health * diffMult * waveHealthMult * bossHealthMult),
+    maxHealth: Math.round(stats.health * diffMult * waveHealthMult * bossHealthMult),
+    speed: stats.speed * diffMult * waveSpeedMult,
     pathIndex: 0,
     reward: Math.round(stats.reward * diffMult),
     slowUntil: 0,

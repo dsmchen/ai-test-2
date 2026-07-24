@@ -41,11 +41,22 @@ export function getEnemiesPerWave(wave: number): number {
 export function getSpawnInterval(wave: number): number {
   if (wave <= 4) return SPAWN_INTERVAL_BASE
   if (wave <= 8) return SPAWN_INTERVAL_BASE - 200
-  return SPAWN_INTERVAL_BASE - 400
+  return SPAWN_INTERVAL_BASE - 600
 }
 
 export function getWaveHealthMultiplier(wave: number): number {
-  return 1 + (wave - 1) * 0.15
+  return 1 + (wave - 1) * 0.25
+}
+
+export function getBossHealthMultiplier(wave: number): number {
+  if (wave < 10) return 1
+  return 1.5
+}
+
+export function getWaveSpeedMultiplier(wave: number): number {
+  if (wave <= 4) return 1
+  if (wave <= 8) return 1.1
+  return 1.25
 }
 export const STARTING_MONEY = 250
 export const STARTING_LIVES = 20
