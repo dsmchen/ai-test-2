@@ -7,9 +7,9 @@ interface GameSetupProps {
 }
 
 const DIFFICULTIES: { key: Difficulty; color: string; label: string; desc: string }[] = [
-  { key: 'easy', color: '#15803D', label: 'Easy', desc: '0.7x stats' },
-  { key: 'medium', color: '#A16207', label: 'Medium', desc: '1x stats' },
-  { key: 'hard', color: '#B91C1C', label: 'Hard', desc: '1.5x stats' },
+  { key: 'easy', color: '#166534', label: 'Easy', desc: '0.7x stats' },
+  { key: 'medium', color: '#92400e', label: 'Medium', desc: '1x stats' },
+  { key: 'hard', color: '#991b1b', label: 'Hard', desc: '1.5x stats' },
 ]
 
 function GameSetup({ difficulty, onSelectDifficulty, onStartGame }: GameSetupProps) {
@@ -30,7 +30,7 @@ function GameSetup({ difficulty, onSelectDifficulty, onStartGame }: GameSetupPro
               className="px-6 py-3 rounded-lg capitalize hover:opacity-80 flex flex-col items-center min-w-[100px]"
             >
               <span className="font-semibold">{label}</span>
-              <span className="text-xs opacity-75">{desc}</span>
+              <span className="text-xs text-gray-300">{desc}</span>
             </button>
           ))}
         </div>

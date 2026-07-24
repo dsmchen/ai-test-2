@@ -8,10 +8,10 @@ interface HUDProps {
 
 function HUD({ money, lives, wave }: HUDProps) {
   return (
-    <div className="flex gap-4 text-lg" aria-label="Game status">
-      <span aria-label={`Money: ${money}`}><span aria-hidden="true">💰</span> {money}</span>
-      <span aria-label={`Lives: ${lives}`}><span aria-hidden="true">❤️</span> {lives}</span>
-      <span aria-label={`Wave ${wave} of ${TOTAL_WAVES}`}><span aria-hidden="true">🌊</span> Wave {wave}/{TOTAL_WAVES}</span>
+    <div className="flex gap-4 text-lg" role="status" aria-live="polite" aria-atomic="true">
+      <span>💰 Money: {money}</span>
+      <span>❤️ Lives: {lives}</span>
+      <span>🌊 Wave {wave}/{TOTAL_WAVES}</span>
     </div>
   )
 }

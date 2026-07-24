@@ -280,8 +280,9 @@ function Game() {
       <div className="sr-only" role="status" aria-live="polite">
         {gameOver === 'won' && 'You won the game!'}
         {gameOver === 'lost' && 'Game over. You lost.'}
-        {!gameOver && waveStarted && `Wave ${wave} in progress`}
-        {!gameOver && !waveStarted && `Ready to start wave ${wave}`}
+        {!gameOver && isPaused && 'Game paused'}
+        {!gameOver && !isPaused && waveStarted && `Wave ${wave} in progress`}
+        {!gameOver && !isPaused && !waveStarted && `Ready to start wave ${wave}`}
       </div>
       <HUD money={money} lives={lives} wave={wave} />
       {!gameOver && (
@@ -321,8 +322,8 @@ function Game() {
           onClick={handleCanvasClick}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          role="img"
-          aria-label="Game board"
+          role="application"
+          aria-label="Game board. Click to place towers. Use number keys 1-4 to select tower type."
           className={`rounded-[5px] block ${cursorClass}`}
         />
 
@@ -333,8 +334,9 @@ function Game() {
 
       {toast && (
         <div
+          role={toast.type === 'error' ? 'alert' : 'status'}
           className={`absolute left-1/2 -translate-x-1/2 bottom-4 px-4 py-2 rounded text-sm text-white z-10 animate-slide-up ${
-            toast.type === 'error' ? 'bg-red-700' : 'bg-green-700'
+            toast.type === 'error' ? 'bg-red-800' : 'bg-green-800'
           }`}
         >
           {toast.message}

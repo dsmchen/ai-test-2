@@ -19,8 +19,9 @@ function TowerSelector({ selected, onSelect, money }: TowerSelectorProps) {
             key={t}
             onClick={() => canAfford && onSelect(t)}
             aria-pressed={selected === t}
-            disabled={!canAfford}
+            aria-label={`${t} tower`}
             title={TOWER_DESCRIPTIONS[t]}
+            disabled={!canAfford}
             className={`px-3 py-1 rounded transition-btn ${
               !canAfford ? 'opacity-40 cursor-not-allowed' : ''
             }`}
