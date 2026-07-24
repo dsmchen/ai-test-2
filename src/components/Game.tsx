@@ -152,9 +152,10 @@ function Game() {
   const handleUpgrade = useCallback(() => {
     if (!selectedPlacedTower) return
     const game = gameRef.current
+    const prevLevel = selectedPlacedTower.level
     if (upgradeTower(game, selectedPlacedTower.id)) {
       setMoney(game.money)
-      setSelectedPlacedTower({ ...selectedPlacedTower, level: selectedPlacedTower.level + 1 })
+      setSelectedPlacedTower({ ...selectedPlacedTower, level: prevLevel + 1 })
     }
   }, [selectedPlacedTower])
 
