@@ -59,12 +59,9 @@ function Game() {
   const gameRef = useRef(createInitialState())
 
   useEffect(() => { gameOverRef.current = gameOver }, [gameOver])
-  useEffect(() => { waveRef.current = wave }, [wave])
   useEffect(() => { difficultyRef.current = difficulty }, [difficulty])
   useEffect(() => { selectedTowerRef.current = selectedTower }, [selectedTower])
   useEffect(() => { gameSpeedRef.current = gameSpeed }, [gameSpeed])
-  useEffect(() => { moneyRef.current = money }, [money])
-  useEffect(() => { livesRef.current = lives }, [lives])
   useEffect(() => { phaseRef.current = phase }, [phase])
   useEffect(() => { selectedPlacedTowerIdRef.current = selectedPlacedTower?.id ?? null }, [selectedPlacedTower])
 

@@ -68,6 +68,7 @@ export function useGameLoop({
     canvas.height = CANVAS_HEIGHT
 
     let cancelled = false
+    let lastSyncTime = 0
 
     render(ctx, gameRef.current, null, selectedTowerRef.current, null, null)
 
@@ -106,13 +107,16 @@ export function useGameLoop({
           setGameOver('lost')
         }
 
-        if (game.money !== moneyRef.current) {
-          moneyRef.current = game.money
-          setMoney(game.money)
-        }
-        if (game.lives !== livesRef.current) {
-          livesRef.current = game.lives
-          setLives(game.lives)
+        if (timestamp - lastSyncTime > 100) {
+          if (game.money !== moneyRef.current) {
+            moneyRef.current = game.money
+            setMoney(game.money)
+          }
+          if (game.lives !== livesRef.current) {
+            livesRef.current = game.lives
+            setLives(game.lives)
+          }
+          lastSyncTime = timestamp
         }
       }
 
