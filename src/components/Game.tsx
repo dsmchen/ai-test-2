@@ -221,7 +221,7 @@ function Game() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameOver, togglePause, cycleSpeed, handleUpgrade, handleSell])
+  }, [gameOver, waveStarted, togglePause, cycleSpeed, handleUpgrade, handleSell])
 
   const resetGame = () => {
     gameRef.current = createInitialState()
