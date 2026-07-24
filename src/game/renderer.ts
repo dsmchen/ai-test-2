@@ -42,7 +42,7 @@ export function render(
     ctx.stroke()
   }
 
-  ctx.strokeStyle = '#3a3a5a'
+  ctx.strokeStyle = '#4a4a6a'
   ctx.lineWidth = 10
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
@@ -53,7 +53,7 @@ export function render(
   }
   ctx.stroke()
 
-  ctx.strokeStyle = '#4a4a6a'
+  ctx.strokeStyle = '#5a5a7a'
   ctx.lineWidth = 2
   ctx.beginPath()
   ctx.moveTo(PATH[0].x, PATH[0].y)
