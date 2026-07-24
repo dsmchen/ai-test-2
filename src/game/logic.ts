@@ -1,5 +1,5 @@
 import { GameState, Tower, EnemyType, Difficulty } from './types'
-import { PATH, ENEMY_STATS, ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, PROJECTILE_HIT_DIST } from './constants'
+import { PATH, ENEMY_STATS, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, TOTAL_WAVES, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, PROJECTILE_HIT_DIST, getEnemiesPerWave, getWaveHealthMultiplier } from './constants'
 
 let nextId = 1
 function generateId(): number {
@@ -48,26 +48,28 @@ export function createInitialState(): GameState {
 }
 
 export function spawnEnemy(game: GameState, difficulty: Difficulty = 'medium') {
-  if (!game.waveStarted || game.enemiesSpawned >= ENEMIES_PER_WAVE) return
+  const enemiesPerWave = getEnemiesPerWave(game.wave)
+  if (!game.waveStarted || game.enemiesSpawned >= enemiesPerWave) return
 
   const types: EnemyType[] = ['normal', 'fast', 'tank']
-  if (game.wave === TOTAL_WAVES && game.enemiesSpawned === ENEMIES_PER_WAVE - 1) {
+  if (game.wave === TOTAL_WAVES && game.enemiesSpawned === enemiesPerWave - 1) {
     types.push('boss')
   }
   const type = types[Math.floor(Math.random() * types.length)]
   const stats = ENEMY_STATS[type]
-  const mult = DIFFICULTY_MULTIPLIER[difficulty]
+  const diffMult = DIFFICULTY_MULTIPLIER[difficulty]
+  const waveMult = getWaveHealthMultiplier(game.wave)
 
   game.enemies.push({
     id: generateId(),
     type,
     x: PATH[0].x,
     y: PATH[0].y,
-    health: stats.health * mult,
-    maxHealth: stats.health * mult,
-    speed: stats.speed * mult,
+    health: Math.round(stats.health * diffMult * waveMult),
+    maxHealth: Math.round(stats.health * diffMult * waveMult),
+    speed: stats.speed * diffMult,
     pathIndex: 0,
-    reward: Math.round(stats.reward * mult),
+    reward: Math.round(stats.reward * diffMult),
     slowUntil: 0,
   })
   game.enemiesSpawned++
@@ -239,7 +241,8 @@ export function updateProjectiles(game: GameState) {
 }
 
 export function checkWaveComplete(game: GameState): boolean {
-  if (game.enemies.length === 0 && game.enemiesSpawned >= ENEMIES_PER_WAVE) {
+  const enemiesPerWave = getEnemiesPerWave(game.wave)
+  if (game.enemies.length === 0 && game.enemiesSpawned >= enemiesPerWave) {
     if (game.wave < TOTAL_WAVES) {
       game.wave++
       game.enemiesSpawned = 0

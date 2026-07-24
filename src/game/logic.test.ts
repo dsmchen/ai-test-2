@@ -12,7 +12,7 @@ import {
   checkWaveComplete,
   checkGameOver,
 } from './logic'
-import { ENEMIES_PER_WAVE, TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, ENEMY_STATS, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, TOTAL_WAVES } from './constants'
+import { TOWER_STATS, CELL_SIZE, STARTING_MONEY, STARTING_LIVES, PATH, UPGRADE_COST, UPGRADE_MULTIPLIER, DIFFICULTY_MULTIPLIER, ENEMY_STATS, SPLASH_RADIUS, SLOW_FACTOR, SLOW_DURATION, PATH_CLEARANCE, SELL_RATIO, TOTAL_WAVES, getEnemiesPerWave } from './constants'
 import { GameState } from './types'
 
 function makeGame(overrides?: Partial<GameState>): GameState {
@@ -73,7 +73,7 @@ describe('spawnEnemy', () => {
   })
 
   it('does nothing if all enemies already spawned', () => {
-    const game = makeGame({ waveStarted: true, enemiesSpawned: ENEMIES_PER_WAVE })
+    const game = makeGame({ waveStarted: true, enemiesSpawned: getEnemiesPerWave(1) })
     spawnEnemy(game)
     expect(game.enemies).toHaveLength(0)
   })
@@ -109,14 +109,14 @@ describe('spawnEnemy', () => {
 
   it('spawns boss on last wave when last enemy', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.9)
-    const game = makeGame({ waveStarted: true, wave: TOTAL_WAVES, enemiesSpawned: ENEMIES_PER_WAVE - 1 })
+    const game = makeGame({ waveStarted: true, wave: TOTAL_WAVES, enemiesSpawned: getEnemiesPerWave(TOTAL_WAVES) - 1 })
     spawnEnemy(game)
     expect(game.enemies[0].type).toBe('boss')
   })
 
   it('does not spawn boss on wave 1', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.9)
-    const game = makeGame({ waveStarted: true, wave: 1, enemiesSpawned: ENEMIES_PER_WAVE - 1 })
+    const game = makeGame({ waveStarted: true, wave: 1, enemiesSpawned: getEnemiesPerWave(1) - 1 })
     spawnEnemy(game)
     expect(game.enemies[0].type).not.toBe('boss')
   })
@@ -395,7 +395,7 @@ describe('updateProjectiles', () => {
 describe('checkWaveComplete', () => {
   it('returns false if enemies still alive', () => {
     const game = makeGame({
-      enemiesSpawned: ENEMIES_PER_WAVE,
+      enemiesSpawned: getEnemiesPerWave(1),
       enemies: [makeEnemy({ health: 10 })],
     })
     expect(checkWaveComplete(game)).toBe(false)
@@ -408,7 +408,7 @@ describe('checkWaveComplete', () => {
 
   it('does not advance wave when enemies are still alive', () => {
     const game = makeGame({
-      enemiesSpawned: ENEMIES_PER_WAVE,
+      enemiesSpawned: getEnemiesPerWave(1),
       enemies: [makeEnemy({ health: 10 })],
     })
     expect(checkWaveComplete(game)).toBe(false)
@@ -417,7 +417,7 @@ describe('checkWaveComplete', () => {
 
   it('advances to wave 2 when wave 1 is complete', () => {
     const game = makeGame({
-      enemiesSpawned: ENEMIES_PER_WAVE,
+      enemiesSpawned: getEnemiesPerWave(1),
       waveStarted: true,
     })
     expect(checkWaveComplete(game)).toBe(false)
@@ -428,7 +428,7 @@ describe('checkWaveComplete', () => {
 
   it('advances to next wave when wave is complete', () => {
     const game = makeGame({
-      enemiesSpawned: ENEMIES_PER_WAVE,
+      enemiesSpawned: getEnemiesPerWave(2),
       wave: 2,
       waveStarted: true,
     })
@@ -439,7 +439,7 @@ describe('checkWaveComplete', () => {
 
   it('returns true when last wave is complete', () => {
     const game = makeGame({
-      enemiesSpawned: ENEMIES_PER_WAVE,
+      enemiesSpawned: getEnemiesPerWave(TOTAL_WAVES),
       wave: TOTAL_WAVES,
       waveStarted: true,
     })

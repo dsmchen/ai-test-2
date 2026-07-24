@@ -29,8 +29,24 @@ export const ENEMY_STATS: Record<EnemyType, { health: number; speed: number; rew
   tank: { health: 200, speed: 0.5, reward: 30 },
   boss: { health: 500, speed: 0.3, reward: 100 },
 }
-export const ENEMIES_PER_WAVE = 10
-export const SPAWN_INTERVAL = 1500
+export const ENEMIES_PER_WAVE_BASE = 10
+export const SPAWN_INTERVAL_BASE = 1500
+
+export function getEnemiesPerWave(wave: number): number {
+  if (wave <= 4) return ENEMIES_PER_WAVE_BASE
+  if (wave <= 8) return ENEMIES_PER_WAVE_BASE + 2
+  return ENEMIES_PER_WAVE_BASE + 5
+}
+
+export function getSpawnInterval(wave: number): number {
+  if (wave <= 4) return SPAWN_INTERVAL_BASE
+  if (wave <= 8) return SPAWN_INTERVAL_BASE - 200
+  return SPAWN_INTERVAL_BASE - 400
+}
+
+export function getWaveHealthMultiplier(wave: number): number {
+  return 1 + (wave - 1) * 0.15
+}
 export const STARTING_MONEY = 250
 export const STARTING_LIVES = 20
 export const TOTAL_WAVES = 12

@@ -6,14 +6,16 @@ import {
   PATH,
   TOWER_STATS,
   ENEMY_STATS,
-  ENEMIES_PER_WAVE,
-  SPAWN_INTERVAL,
+  ENEMIES_PER_WAVE_BASE,
   STARTING_MONEY,
   STARTING_LIVES,
   TOTAL_WAVES,
   UPGRADE_COST,
   UPGRADE_MULTIPLIER,
   DIFFICULTY_MULTIPLIER,
+  getEnemiesPerWave,
+  getSpawnInterval,
+  getWaveHealthMultiplier,
 } from './constants'
 
 describe('constants', () => {
@@ -71,11 +73,22 @@ describe('constants', () => {
   })
 
   it('game config values are positive', () => {
-    expect(ENEMIES_PER_WAVE).toBeGreaterThan(0)
-    expect(SPAWN_INTERVAL).toBeGreaterThan(0)
+    expect(ENEMIES_PER_WAVE_BASE).toBeGreaterThan(0)
+    expect(getSpawnInterval(1)).toBeGreaterThan(0)
     expect(STARTING_MONEY).toBeGreaterThan(0)
     expect(STARTING_LIVES).toBeGreaterThan(0)
     expect(TOTAL_WAVES).toBeGreaterThan(0)
+  })
+
+  it('wave scaling functions work correctly', () => {
+    expect(getEnemiesPerWave(1)).toBe(10)
+    expect(getEnemiesPerWave(6)).toBe(12)
+    expect(getEnemiesPerWave(10)).toBe(15)
+    expect(getSpawnInterval(1)).toBe(1500)
+    expect(getSpawnInterval(6)).toBe(1300)
+    expect(getSpawnInterval(10)).toBe(1100)
+    expect(getWaveHealthMultiplier(1)).toBe(1)
+    expect(getWaveHealthMultiplier(12)).toBeCloseTo(2.65)
   })
 
   it('upgrade costs have 3 entries', () => {

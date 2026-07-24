@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { GameState, TowerType, Difficulty } from '../game/types'
-import { CANVAS_WIDTH, CANVAS_HEIGHT, ENEMIES_PER_WAVE, SPAWN_INTERVAL } from '../game/constants'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, getEnemiesPerWave, getSpawnInterval } from '../game/constants'
 import {
   spawnEnemy,
   updateEnemies,
@@ -83,7 +83,7 @@ export function useGameLoop({
       game.gameSpeed = gameSpeedRef.current
 
       if (!gameOverRef.current && !game.paused) {
-        if (game.enemiesSpawned < ENEMIES_PER_WAVE && timestamp - game.lastSpawn > SPAWN_INTERVAL / gameSpeedRef.current) {
+        if (game.enemiesSpawned < getEnemiesPerWave(game.wave) && timestamp - game.lastSpawn > getSpawnInterval(game.wave) / gameSpeedRef.current) {
           spawnEnemy(game, difficultyRef.current)
           game.lastSpawn = timestamp
         }
